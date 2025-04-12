@@ -52,4 +52,12 @@ export class LDAPStorage {
             }
         });
     }
+
+    getGroups(): Group[] {
+      return this.groups;
+    }
+    
+    getUsers(): User[] {
+      return this.users;
+    }
 }
