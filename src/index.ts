@@ -5,7 +5,7 @@ async function main() {
   const storage = new LDAPStorage();
 
   const xmlContent = readXMLFile('AddGrupo1.xml');
-  console.log(storage.getGroups());
+  console.log(xmlContent);
 }
 
 main();

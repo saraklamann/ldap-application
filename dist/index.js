@@ -5,6 +5,6 @@ const ldap_storage_1 = require("./storage/ldap-storage");
 async function main() {
     const storage = new ldap_storage_1.LDAPStorage();
     const xmlContent = (0, xml_reader_1.readXMLFile)('AddGrupo1.xml');
-    console.log(storage.getGroups());
+    console.log(xmlContent);
 }
 main();

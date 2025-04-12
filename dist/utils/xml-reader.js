@@ -7,6 +7,7 @@ exports.readXMLFile = readXMLFile;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 function readXMLFile(filename) {
-    const filePath = path_1.default.join(__dirname, "..", "xml", filename);
+    const xmlDirectory = path_1.default.join(__dirname, "..", "..", "src", "xml");
+    const filePath = path_1.default.join(xmlDirectory, filename);
     return fs_1.default.readFileSync(filePath, "utf-8");
 }
