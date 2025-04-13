@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    container_name: ldap-app
+    volumes:
+      - ./src:/app/src
+    stdin_open: true  # Habilita o modo interativo
+    tty: true         # Aloca um terminal para o container
+    ports:
+      - "8080:8080"    # Exemplo de mapeamento de porta, se necessário
