@@ -14,9 +14,9 @@ class ParseService {
     execute(xmlContent) {
         const doc = new xmldom_1.DOMParser().parseFromString(xmlContent, 'text/xml');
         const rootNode = doc.documentElement.nodeName;
+        const className = doc.documentElement.getAttribute("class-name");
         switch (rootNode) {
             case "add":
-                let className = doc.documentElement.getAttribute("class-name");
                 if (className === "Grupo") {
                     this.handleAddGroup(doc);
                 }
@@ -28,7 +28,6 @@ class ParseService {
                 }
                 break;
             case "modify":
-                className = doc.documentElement.getAttribute("class-name");
                 if (className === "Usuario") {
                     this.handleModifyUser(doc);
                 }
