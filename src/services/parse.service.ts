@@ -23,7 +23,8 @@ export class ParseService {
                 }
 
                 break;
-            case "remove":
+            case "modify":
+                this.handleModifyUser(doc);
                 break;
             default:
                 break;
@@ -66,5 +67,25 @@ export class ParseService {
 
         this.storage.addUser({fullName: userName, username: userLogin, phone: userPhone, groups: userGroups});
         console.log(`O usuário ${userName} foi criado com sucesso.`);
+    }
+
+    private handleModifyUser(doc: Document){
+        const select = xpath.useNamespaces({});
+
+        const userNode = (select("//modify/association[@state='associated']/text()", doc) as Node[])[0];
+        const userLogin = userNode?.nodeValue?.trim() || "";
+
+        if(!userLogin){
+            console.error("Não foi possível encontrar o nome do usuário no documento XML.");
+            return;
+        }
+
+        const removeGroupNodes = select("//modify-attr[@attr-name='Grupo']/remove-value/value/text()", doc) as Node[];
+        const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc) as Node[];
+
+        const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
+        const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
+
+        this.storage.modifyUserGroups(userLogin, groupsToAdd, groupsToRemove);
     }
 }

@@ -13,10 +13,10 @@ class LDAPStorage {
         this.groups.push(group);
     }
     findUserByUsername(username) {
-        return this.users.find(user => user.username === username);
+        return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());
     }
     findGroupByDescription(groupDescription) {
-        return this.groups.find(group => group.description === groupDescription);
+        return this.groups.find(group => group.description.toLocaleLowerCase() === groupDescription.toLocaleLowerCase());
     }
     modifyUserGroups(username, groupsToAdd, groupsToRemove) {
         const user = this.findUserByUsername(username);

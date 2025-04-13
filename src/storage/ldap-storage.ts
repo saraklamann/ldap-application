@@ -13,12 +13,12 @@ export class LDAPStorage {
         this.groups.push(group);
     }
 
-    private findUserByUsername(username: string): User | undefined {
-        return this.users.find(user => user.username === username);
+    findUserByUsername(username: string): User | undefined {
+        return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());
     }
     
     private findGroupByDescription(groupDescription: string): Group | undefined {
-        return this.groups.find(group => group.description === groupDescription);
+        return this.groups.find(group => group.description.toLocaleLowerCase() === groupDescription.toLocaleLowerCase());
     }
 
     public modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]): void {
@@ -44,11 +44,11 @@ export class LDAPStorage {
             const group = this.findGroupByDescription(groupDescription); 
 
             if (group && user.groups.includes(groupDescription)) {
-                const groupIndex = user.groups.indexOf(groupDescription); 
-                user.groups.splice(groupIndex, 1);
-                console.log(`O grupo ${groupDescription} foi removido do usuário ${username}.`);
+              const groupIndex = user.groups.indexOf(groupDescription); 
+              user.groups.splice(groupIndex, 1);
+              console.log(`O grupo ${groupDescription} foi removido do usuário ${username}.`);
             } else if (!group) {
-            console.log(`O grupo ${groupDescription} não foi encontrado.`);
+              console.log(`O grupo ${groupDescription} não foi encontrado.`);
             }
         });
     }
