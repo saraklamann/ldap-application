@@ -7,10 +7,22 @@ class LDAPStorage {
         this.groups = [];
     }
     addUser(user) {
+        const existingUser = this.findUserByUsername(user.username);
+        if (existingUser) {
+            console.log(`O nome de usuário ${user.username} já existe.`);
+            return;
+        }
         this.users.push(user);
+        console.log(`O usuário ${user.username} foi criado com sucesso.`);
     }
     addGroup(group) {
+        const existingGroup = this.findGroupById(group.id);
+        if (existingGroup) {
+            console.log(`O grupo com ID ${group.id} já existe.`);
+            return;
+        }
         this.groups.push(group);
+        console.log(`O grupo ${group.description} foi criado com sucesso.`);
     }
     findUserByUsername(username) {
         return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());

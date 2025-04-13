@@ -6,11 +6,27 @@ export class LDAPStorage {
     private groups: Group[] = [];
 
     addUser(user: User) {
-        this.users.push(user);
+      const existingUser = this.findUserByUsername(user.username);
+      
+      if (existingUser) {
+        console.log(`O nome de usuário ${user.username} já existe.`);
+        return;
+      }
+
+      this.users.push(user);
+      console.log(`O usuário ${user.username} foi criado com sucesso.`);
     }
 
     addGroup(group: Group) {
-        this.groups.push(group);
+      const existingGroup = this.findGroupById(group.id);
+      
+      if (existingGroup) {
+        console.log(`O grupo com ID ${group.id} já existe.`);
+        return;
+      }
+
+      this.groups.push(group);
+      console.log(`O grupo ${group.description} foi criado com sucesso.`);
     }
 
     findUserByUsername(username: string): User | undefined {

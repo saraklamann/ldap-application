@@ -109,8 +109,8 @@ async function main() {
             case "5":
                 const users = storage.getUsers();
                 console.log("Usuários registrados: ");
-                users.forEach((user, index) => {
-                    console.log(`[${index + 1}] ${user.username} - Groups: ${user.groups.join(", ")}`);
+                users.forEach((user) => {
+                    console.log(`Usuário: ${user.fullName} - Groups: ${user.groups.join(", ")}`);
                 });
                 break;
             case "0":

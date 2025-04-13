@@ -53,7 +53,6 @@ export class ParseService {
         }
         
         this.storage.addGroup({id: groupId, description: groupDescription});
-        console.log(`O grupo ${groupDescription} foi criado com sucesso.`);
     }
 
     private handleAddUser(doc: Document){
@@ -73,7 +72,6 @@ export class ParseService {
         }
 
         this.storage.addUser({fullName: userName, username: userLogin, phone: userPhone, groups: userGroups});
-        console.log(`O usuário ${userName} foi criado com sucesso.`);
     }
 
     private handleModifyUser(doc: Document){

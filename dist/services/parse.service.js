@@ -51,7 +51,6 @@ class ParseService {
             return;
         }
         this.storage.addGroup({ id: groupId, description: groupDescription });
-        console.log(`O grupo ${groupDescription} foi criado com sucesso.`);
     }
     handleAddUser(doc) {
         const nameNode = xpath_1.default.select("//add-attr[@attr-name='Nome Completo']/value/text()", doc)[0];
@@ -67,7 +66,6 @@ class ParseService {
             return;
         }
         this.storage.addUser({ fullName: userName, username: userLogin, phone: userPhone, groups: userGroups });
-        console.log(`O usuário ${userName} foi criado com sucesso.`);
     }
     handleModifyUser(doc) {
         const select = xpath_1.default.useNamespaces({});
