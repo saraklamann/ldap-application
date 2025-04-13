@@ -12,12 +12,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "prompt-sync": "^4.2.0",
+    "readline-sync": "^1.4.10",
     "typescript": "^5.8.3",
     "xmldom": "^0.6.0",
     "xpath": "^0.0.34"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
+    "@types/prompt-sync": "^4.2.3",
     "@types/xmldom": "^0.1.34"
   }
 }

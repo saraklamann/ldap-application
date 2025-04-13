@@ -14,19 +14,29 @@ export class ParseService {
 
         switch(rootNode){
             case "add":
-                const className = doc.documentElement.getAttribute('class-name');
+                let className = doc.documentElement.getAttribute("class-name");
 
-                if(className === 'Grupo') {
+                if(className === "Grupo") {
                     this.handleAddGroup(doc);
-                } else {
+                } else if (className === "Usuario") {
                     this.handleAddUser(doc)
+                } else {
+                    console.log(`Não foi possível encontrar a entidade ${className}.`);
                 }
 
                 break;
             case "modify":
-                this.handleModifyUser(doc);
+                className = doc.documentElement.getAttribute("class-name");
+                
+                if(className === "Usuario") {
+                    this.handleModifyUser(doc);
+                } else {
+                    console.log(`Método não implementado para a entidade ${className}.`);
+                }
+
                 break;
             default:
+                console.log("Método não implementado.")
                 break;
         }
     }
