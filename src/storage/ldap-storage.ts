@@ -1,5 +1,6 @@
 import { User } from "../models/user";
 import { Group } from "../models/group";
+import { isValidName } from "../utils/validations";
 
 export class LDAPStorage {
     private users: User[] = [];
@@ -7,7 +8,12 @@ export class LDAPStorage {
 
     addUser(user: User) {
       const existingUser = this.findUserByUsername(user.username);
-      
+
+      if (!isValidName(user.fullName || user.username)) {
+        console.log("Nome do usuário ou nome completo não podem estar em branco.");
+        return;
+      }
+
       if (existingUser) {
         console.log(`O nome de usuário ${user.username} já existe.`);
         return;
@@ -19,6 +25,11 @@ export class LDAPStorage {
 
     addGroup(group: Group) {
       const existingGroup = this.findGroupById(group.id);
+
+      if (!isValidName(group.id || group.description)) {
+        console.log("O ID de um grupo ou a descrição não podem estar em branco.");
+        return;
+      }
       
       if (existingGroup) {
         console.log(`O grupo com ID ${group.id} já existe.`);
@@ -29,15 +40,15 @@ export class LDAPStorage {
       console.log(`O grupo ${group.description} foi criado com sucesso.`);
     }
 
-    findUserByUsername(username: string): User | undefined {
+    private findUserByUsername(username: string): User | undefined {
         return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());
     }
     
-    private findGroupById(groupId: string): Group | undefined {
+    findGroupById(groupId: string): Group | undefined {
         return this.groups.find(group => group.id.toLocaleLowerCase() === groupId.toLocaleLowerCase());
     }
 
-    public modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]): void {
+    modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]): void {
         const user = this.findUserByUsername(username);
         
         if (!user) {

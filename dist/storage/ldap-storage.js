@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LDAPStorage = void 0;
+const validations_1 = require("../utils/validations");
 class LDAPStorage {
     constructor() {
         this.users = [];
@@ -8,6 +9,10 @@ class LDAPStorage {
     }
     addUser(user) {
         const existingUser = this.findUserByUsername(user.username);
+        if (!(0, validations_1.isValidName)(user.fullName || user.username)) {
+            console.log("Nome do usuário ou nome completo não podem estar em branco.");
+            return;
+        }
         if (existingUser) {
             console.log(`O nome de usuário ${user.username} já existe.`);
             return;
@@ -17,6 +22,10 @@ class LDAPStorage {
     }
     addGroup(group) {
         const existingGroup = this.findGroupById(group.id);
+        if (!(0, validations_1.isValidName)(group.id || group.description)) {
+            console.log("O ID de um grupo ou a descrição não podem estar em branco.");
+            return;
+        }
         if (existingGroup) {
             console.log(`O grupo com ID ${group.id} já existe.`);
             return;

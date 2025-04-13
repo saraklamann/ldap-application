@@ -74,8 +74,14 @@ async function showGroupMenu() {
         console.log(`[${index + 1}] ${groupDescription}`);
     });
     const choice = await askQuestion("Escolha o grupo a ser adicionado: ");
-    const addGroupXML = (0, xml_reader_1.readXMLFile)(`AddGrupo${choice}.xml`);
-    parseService.execute(addGroupXML);
+    if (parseInt(choice) > availableGroups.length || parseInt(choice) < 1) {
+        console.log("Opção inválida!");
+        return;
+    }
+    else {
+        const addGroupXML = (0, xml_reader_1.readXMLFile)(`AddGrupo${choice}.xml`);
+        parseService.execute(addGroupXML);
+    }
 }
 async function main() {
     let exit = false;

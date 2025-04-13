@@ -61,8 +61,13 @@ class ParseService {
         const userLogin = loginNode?.nodeValue?.trim() || "";
         const userPhone = phoneNode?.nodeValue?.trim() || "";
         const userGroups = groupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
-        if (!userName || !userLogin || !userPhone || !userGroups) {
+        if (!userName || !userLogin || !userPhone) {
             console.error("Faltam informações sobre o usuário no documento XML.");
+            return;
+        }
+        const invalidGroups = userGroups.filter(groupId => !this.storage.findGroupById(groupId));
+        if (invalidGroups.length > 0) {
+            console.error(`Os seguintes grupos não existem: ${invalidGroups.join(", ")}`);
             return;
         }
         this.storage.addUser({ fullName: userName, username: userLogin, phone: userPhone, groups: userGroups });

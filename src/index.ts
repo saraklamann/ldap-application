@@ -48,8 +48,14 @@ async function showGroupMenu() {
 
     const choice = await askQuestion("Escolha o grupo a ser adicionado: ");
 
-    const addGroupXML = readXMLFile(`AddGrupo${choice}.xml`)
-    parseService.execute(addGroupXML);
+    if (parseInt(choice) > availableGroups.length || parseInt(choice) < 1){
+      console.log("Opção inválida!")
+      return
+    } else {
+      const addGroupXML = readXMLFile(`AddGrupo${choice}.xml`)
+      parseService.execute(addGroupXML);
+    }
+
 }
 
 async function main() {
