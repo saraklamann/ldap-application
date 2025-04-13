@@ -49,6 +49,8 @@ function showMenu() {
     console.log("[1] Adicionar Grupo");
     console.log("[2] Adicionar Usuário");
     console.log("[3] Modificar Usuário");
+    console.log("[4] Exibir grupos");
+    console.log("[5] Exibir usuários");
     console.log("[0] Sair");
 }
 function askQuestion(question) {
@@ -91,6 +93,25 @@ async function main() {
             case "3":
                 const modifyUserXML = (0, xml_reader_1.readXMLFile)("ModifyUsuario.xml");
                 parseService.execute(modifyUserXML);
+                break;
+            case "4":
+                const allGroups = storage.getGroups();
+                if (allGroups.length === 0) {
+                    console.log("Nenhum grupo foi adicionado ainda.");
+                }
+                else {
+                    console.log("Grupos já inseridos:");
+                    allGroups.forEach((group) => {
+                        console.log(group);
+                    });
+                }
+                break;
+            case "5":
+                const users = storage.getUsers();
+                console.log("Usuários registrados: ");
+                users.forEach((user, index) => {
+                    console.log(`[${index + 1}] ${user.username} - Groups: ${user.groups.join(", ")}`);
+                });
                 break;
             case "0":
                 exit = true;

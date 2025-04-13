@@ -17,8 +17,8 @@ export class LDAPStorage {
         return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());
     }
     
-    private findGroupByDescription(groupDescription: string): Group | undefined {
-        return this.groups.find(group => group.description.toLocaleLowerCase() === groupDescription.toLocaleLowerCase());
+    private findGroupById(groupId: string): Group | undefined {
+        return this.groups.find(group => group.id.toLocaleLowerCase() === groupId.toLocaleLowerCase());
     }
 
     public modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]): void {
@@ -29,32 +29,32 @@ export class LDAPStorage {
           return;
         }
         
-        groupsToAdd.forEach(groupDescription => {
-          const group = this.findGroupByDescription(groupDescription);
+        groupsToAdd.forEach(groupId => {
+          const group = this.findGroupById(groupId);
 
-          if (group && !user.groups.includes(group.description)) {
-            user.groups.push(groupDescription);
-            console.log(`O grupo ${groupDescription} foi adicionado ao usuário ${username}.`);
+          if (group && !user.groups.includes(group.id)) {
+            user.groups.push(groupId);
+            console.log(`O grupo ${groupId} foi adicionado ao usuário ${username}.`);
           } else if (!group) {
-            console.log(`O grupo ${groupDescription} não foi encontrado.`);
+            console.log(`O grupo ${groupId} não foi encontrado.`);
           }
         });
       
-        groupsToRemove.forEach(groupDescription => {
-            const group = this.findGroupByDescription(groupDescription); 
+        groupsToRemove.forEach(groupId => {
+            const group = this.findGroupById(groupId); 
 
-            if (group && user.groups.includes(groupDescription)) {
-              const groupIndex = user.groups.indexOf(groupDescription); 
+            if (group && user.groups.includes(groupId)) {
+              const groupIndex = user.groups.indexOf(groupId); 
               user.groups.splice(groupIndex, 1);
-              console.log(`O grupo ${groupDescription} foi removido do usuário ${username}.`);
+              console.log(`O grupo ${groupId} foi removido do usuário ${username}.`);
             } else if (!group) {
-              console.log(`O grupo ${groupDescription} não foi encontrado.`);
+              console.log(`O grupo ${groupId} não foi encontrado.`);
             }
         });
     }
 
-    getGroups(): Group[] {
-      return this.groups;
+    getGroups(): String[] {
+      return this.groups.map(group => group.description);
     }
     
     getUsers(): User[] {

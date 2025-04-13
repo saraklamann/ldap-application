@@ -15,8 +15,8 @@ class LDAPStorage {
     findUserByUsername(username) {
         return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());
     }
-    findGroupByDescription(groupDescription) {
-        return this.groups.find(group => group.description.toLocaleLowerCase() === groupDescription.toLocaleLowerCase());
+    findGroupById(groupId) {
+        return this.groups.find(group => group.id.toLocaleLowerCase() === groupId.toLocaleLowerCase());
     }
     modifyUserGroups(username, groupsToAdd, groupsToRemove) {
         const user = this.findUserByUsername(username);
@@ -24,30 +24,30 @@ class LDAPStorage {
             console.log(`O usuário ${username} não foi encontrado.`);
             return;
         }
-        groupsToAdd.forEach(groupDescription => {
-            const group = this.findGroupByDescription(groupDescription);
-            if (group && !user.groups.includes(group.description)) {
-                user.groups.push(groupDescription);
-                console.log(`O grupo ${groupDescription} foi adicionado ao usuário ${username}.`);
+        groupsToAdd.forEach(groupId => {
+            const group = this.findGroupById(groupId);
+            if (group && !user.groups.includes(group.id)) {
+                user.groups.push(groupId);
+                console.log(`O grupo ${groupId} foi adicionado ao usuário ${username}.`);
             }
             else if (!group) {
-                console.log(`O grupo ${groupDescription} não foi encontrado.`);
+                console.log(`O grupo ${groupId} não foi encontrado.`);
             }
         });
-        groupsToRemove.forEach(groupDescription => {
-            const group = this.findGroupByDescription(groupDescription);
-            if (group && user.groups.includes(groupDescription)) {
-                const groupIndex = user.groups.indexOf(groupDescription);
+        groupsToRemove.forEach(groupId => {
+            const group = this.findGroupById(groupId);
+            if (group && user.groups.includes(groupId)) {
+                const groupIndex = user.groups.indexOf(groupId);
                 user.groups.splice(groupIndex, 1);
-                console.log(`O grupo ${groupDescription} foi removido do usuário ${username}.`);
+                console.log(`O grupo ${groupId} foi removido do usuário ${username}.`);
             }
             else if (!group) {
-                console.log(`O grupo ${groupDescription} não foi encontrado.`);
+                console.log(`O grupo ${groupId} não foi encontrado.`);
             }
         });
     }
     getGroups() {
-        return this.groups;
+        return this.groups.map(group => group.description);
     }
     getUsers() {
         return this.users;
