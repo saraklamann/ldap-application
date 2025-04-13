@@ -1,6 +1,7 @@
 import { User } from "../models/user";
 import { Group } from "../models/group";
 import { isValidName } from "../utils/validations";
+import { execSync } from "child_process";
 
 export class LDAPStorage {
     private users: User[] = [];
@@ -87,4 +88,24 @@ export class LDAPStorage {
     getUsers(): User[] {
       return this.users;
     }
+
+    fetchGroupsFromLDAP(): void {
+      try {
+        // Ajuste na URL para o domínio correto
+        const result = execSync(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixGroup" cn`, {
+          encoding: "utf-8"
+        });
+    
+        // Filtrando e extraindo os nomes dos grupos
+        const groupNames = result.split("\n")
+          .filter(line => line.startsWith("cn:")) // Filtrando as linhas que contêm o "cn" dos grupos
+          .map(line => line.replace("cn: ", "").trim()); // Extraindo o nome do grupo
+    
+        console.log("Grupos encontrados no LDAP: ");
+        groupNames.forEach(name => console.log(`- ${name}`));
+      } catch (error) {
+        console.error("Erro ao buscar grupos do LDAP: ", error);
+      }
+    }
+    
 }

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LDAPStorage = void 0;
 const validations_1 = require("../utils/validations");
+const child_process_1 = require("child_process");
 class LDAPStorage {
     constructor() {
         this.users = [];
@@ -72,6 +73,23 @@ class LDAPStorage {
     }
     getUsers() {
         return this.users;
+    }
+    fetchGroupsFromLDAP() {
+        try {
+            // Ajuste na URL para o domínio correto
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixGroup" cn`, {
+                encoding: "utf-8"
+            });
+            // Filtrando e extraindo os nomes dos grupos
+            const groupNames = result.split("\n")
+                .filter(line => line.startsWith("cn:")) // Filtrando as linhas que contêm o "cn" dos grupos
+                .map(line => line.replace("cn: ", "").trim()); // Extraindo o nome do grupo
+            console.log("Grupos encontrados no LDAP: ");
+            groupNames.forEach(name => console.log(`- ${name}`));
+        }
+        catch (error) {
+            console.error("Erro ao buscar grupos do LDAP: ", error);
+        }
     }
 }
 exports.LDAPStorage = LDAPStorage;

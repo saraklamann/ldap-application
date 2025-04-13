@@ -58,54 +58,58 @@ async function showGroupMenu() {
 
 }
 
-async function main() {
-  let exit = false;
+// async function main() {
+//   let exit = false;
 
-  while (!exit) {
-    showMenu();
-    const choice = await askQuestion("Escolha a operação: ");
+//   while (!exit) {
+//     showMenu();
+//     const choice = await askQuestion("Escolha a operação: ");
 
-    switch (choice) {
-      case "1":
-        await showGroupMenu();
-        break;
-      case "2":
-        const addUserXML = readXMLFile("AddUsuario1.xml");
-        parseService.execute(addUserXML);
-        break;
-      case "3":
-        const modifyUserXML = readXMLFile("ModifyUsuario.xml");
-        parseService.execute(modifyUserXML);
-        break;
-      case "4":
-        const allGroups = storage.getGroups();
-        if (allGroups.length === 0) {
-          console.log("Nenhum grupo foi adicionado ainda.");
-        } else {
-          console.log("Grupos já inseridos:");
-          allGroups.forEach((group) => {
-            console.log(group);
-          });
-        }
-        break;
-      case "5":
-        const users = storage.getUsers();
-        console.log("Usuários registrados: ");
-        users.forEach((user) => {
-          console.log(`Usuário: ${user.fullName} - Groups: ${user.groups.join(", ")}`);
-        });
-        break;
-      case "0":
-        exit = true;
-        console.log("Saindo...");
-        break;
-      default:
-        console.log("Opção inválida!");
-        break;
-    }
-  }
+//     switch (choice) {
+//       case "1":
+//         await showGroupMenu();
+//         break;
+//       case "2":
+//         const addUserXML = readXMLFile("AddUsuario1.xml");
+//         parseService.execute(addUserXML);
+//         break;
+//       case "3":
+//         const modifyUserXML = readXMLFile("ModifyUsuario.xml");
+//         parseService.execute(modifyUserXML);
+//         break;
+//       case "4":
+//         const allGroups = storage.getGroups();
+//         if (allGroups.length === 0) {
+//           console.log("Nenhum grupo foi adicionado ainda.");
+//         } else {
+//           console.log("Grupos já inseridos:");
+//           allGroups.forEach((group) => {
+//             console.log(group);
+//           });
+//         }
+//         break;
+//       case "5":
+//         const users = storage.getUsers();
+//         console.log("Usuários registrados: ");
+//         users.forEach((user) => {
+//           console.log(`Usuário: ${user.fullName} - Groups: ${user.groups.join(", ")}`);
+//         });
+//         break;
+//       case "0":
+//         exit = true;
+//         console.log("Saindo...");
+//         break;
+//       default:
+//         console.log("Opção inválida!");
+//         break;
+//     }
+//   }
 
-  rl.close();
+//   rl.close();
+// }
+
+function main(){
+  storage.fetchGroupsFromLDAP();
 }
 
 main();

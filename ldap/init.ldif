@@ -1,7 +1,18 @@
-dn: ou=Users,dc=example,dc=com
-objectClass: organizationalUnit
-ou: Users
+dn: dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: domain
 
-dn: ou=Groups,dc=example,dc=com
+dn: ou=People,dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=openconsult,dc=com,dc=br
+objectClass: top
 objectClass: organizationalUnit
 ou: Groups
+
+dn: dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: organization
+o: openconsult
