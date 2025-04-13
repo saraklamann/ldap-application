@@ -109,7 +109,8 @@ async function showGroupMenu() {
 // }
 
 function main(){
-  storage.fetchGroupsFromLDAP();
+  storage.getGroupsFromLDAP();
+  storage.getUsersFromLDAP();
 }
 
 main();

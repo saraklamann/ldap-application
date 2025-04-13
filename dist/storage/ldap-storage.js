@@ -74,21 +74,49 @@ class LDAPStorage {
     getUsers() {
         return this.users;
     }
-    fetchGroupsFromLDAP() {
+    getGroupsFromLDAP() {
         try {
-            // Ajuste na URL para o domínio correto
             const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixGroup" cn`, {
                 encoding: "utf-8"
             });
-            // Filtrando e extraindo os nomes dos grupos
             const groupNames = result.split("\n")
-                .filter(line => line.startsWith("cn:")) // Filtrando as linhas que contêm o "cn" dos grupos
-                .map(line => line.replace("cn: ", "").trim()); // Extraindo o nome do grupo
+                .filter(line => line.startsWith("cn:"))
+                .map(line => line.replace("cn: ", "").trim());
             console.log("Grupos encontrados no LDAP: ");
             groupNames.forEach(name => console.log(`- ${name}`));
         }
         catch (error) {
             console.error("Erro ao buscar grupos do LDAP: ", error);
+        }
+    }
+    getUsersFromLDAP() {
+        try {
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixAccount" uid memberOf`, {
+                encoding: "utf-8"
+            });
+            const lines = result.split("\n");
+            let currentUser = "";
+            const users = {};
+            for (const line of lines) {
+                if (line.startsWith("uid: ")) {
+                    currentUser = line.replace("uid: ", "").trim();
+                    users[currentUser] = [];
+                }
+                else if (line.startsWith("memberOf: ") && currentUser) {
+                    const groupDN = line.replace("memberOf: ", "").trim();
+                    const cnMatch = groupDN.match(/cn=([^,]+)/i);
+                    if (cnMatch) {
+                        users[currentUser].push(cnMatch[1]);
+                    }
+                }
+            }
+            console.log("Usuários encontrados no LDAP:");
+            for (const [uid, groups] of Object.entries(users)) {
+                console.log(`- ${uid}${groups.length ? ` (Grupos: ${groups.join(", ")})` : ""}`);
+            }
+        }
+        catch (error) {
+            console.error("Erro ao buscar usuários do LDAP: ", error);
         }
     }
 }

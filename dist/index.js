@@ -130,6 +130,7 @@ async function showGroupMenu() {
 //   rl.close();
 // }
 function main() {
-    storage.fetchGroupsFromLDAP();
+    storage.getGroupsFromLDAP();
+    storage.getUsersFromLDAP();
 }
 main();
