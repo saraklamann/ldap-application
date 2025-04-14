@@ -130,8 +130,8 @@ async function showGroupMenu() {
 //   rl.close();
 // }
 function main() {
-    const xml = (0, xml_reader_1.readXMLFile)("AddGrupo3.xml");
-    parseService.execute(xml);
-    storage.getGroupsFromLDAP();
+    // const xml = readXMLFile("AddUsuario1.xml");
+    // parseService.execute(xml);
+    storage.getUsersFromLDAP();
 }
 main();

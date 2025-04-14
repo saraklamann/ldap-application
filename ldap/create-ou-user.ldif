@@ -1,0 +1,3 @@
+dn: ou=users,dc=openconsult,dc=com,dc=br
+objectClass: organizationalUnit
+ou: users

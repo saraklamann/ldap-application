@@ -70,7 +70,8 @@ class ParseService {
             console.error(`Os seguintes grupos não existem: ${invalidGroups.join(", ")}`);
             return;
         }
-        this.storage.addUser({ fullName: userName, username: userLogin, phone: userPhone, groups: userGroups });
+        const user = { fullName: userName, username: userLogin, phone: userPhone, groups: userGroups };
+        this.storage.addUserToLDAP(user);
     }
     handleModifyUser(doc) {
         const select = xpath_1.default.useNamespaces({});

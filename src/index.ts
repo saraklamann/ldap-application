@@ -109,10 +109,10 @@ async function showGroupMenu() {
 // }
 
 function main(){
-  const xml = readXMLFile("AddGrupo3.xml");
-  parseService.execute(xml);
+  // const xml = readXMLFile("AddUsuario1.xml");
+  // parseService.execute(xml);
 
-  storage.getGroupsFromLDAP();
+  storage.getUsersFromLDAP();
 }
 
 main();

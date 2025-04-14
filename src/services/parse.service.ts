@@ -66,7 +66,7 @@ export class ParseService {
         const userPhone = phoneNode?.nodeValue?.trim() || "";
         const userGroups = groupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
 
-        if(!userName || !userLogin || !userPhone){
+        if (!userName || !userLogin || !userPhone) {
             console.error("Faltam informações sobre o usuário no documento XML.");
             return;
         }
@@ -76,9 +76,10 @@ export class ParseService {
         if (invalidGroups.length > 0) {
             console.error(`Os seguintes grupos não existem: ${invalidGroups.join(", ")}`);
             return;
-        } 
-        
-        this.storage.addUser({fullName: userName, username: userLogin, phone: userPhone, groups: userGroups});
+        }
+
+        const user = { fullName: userName, username: userLogin, phone: userPhone, groups: userGroups };
+        this.storage.addUserToLDAP(user);
     }
 
     private handleModifyUser(doc: Document){
