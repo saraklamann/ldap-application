@@ -94,29 +94,42 @@ class LDAPStorage {
             const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixAccount" uid memberOf`, {
                 encoding: "utf-8"
             });
-            const lines = result.split("\n");
-            let currentUser = "";
-            const users = {};
-            for (const line of lines) {
-                if (line.startsWith("uid: ")) {
-                    currentUser = line.replace("uid: ", "").trim();
-                    users[currentUser] = [];
-                }
-                else if (line.startsWith("memberOf: ") && currentUser) {
-                    const groupDN = line.replace("memberOf: ", "").trim();
-                    const cnMatch = groupDN.match(/cn=([^,]+)/i);
-                    if (cnMatch) {
-                        users[currentUser].push(cnMatch[1]);
-                    }
-                }
-            }
-            console.log("Usuários encontrados no LDAP:");
-            for (const [uid, groups] of Object.entries(users)) {
-                console.log(`- ${uid}${groups.length ? ` (Grupos: ${groups.join(", ")})` : ""}`);
-            }
+            const groupNames = result
+                .split("\n")
+                .filter(line => line.startsWith("cn:"))
+                .map(line => line.replace("cn: ", "").trim());
+            console.log("Grupos encontrados no LDAP:");
+            groupNames.forEach(name => console.log(`- ${name}`));
         }
         catch (error) {
             console.error("Erro ao buscar usuários do LDAP: ", error);
+        }
+    }
+    generateGidNumber() {
+        return (1000 + this.groups.length).toString();
+    }
+    addGroupsToLDAP(group) {
+        try {
+            const existingGroup = this.findGroupById(group.id);
+            if (!(0, validations_1.isValidName)(group.id || group.description)) {
+                console.log("O ID de um grupo ou a descrição não podem estar em branco.");
+                return;
+            }
+            if (existingGroup) {
+                console.log(`O grupo com ID ${group.id} já existe.`);
+                return;
+            }
+            const ldapAddCommand = `dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br
+        objectClass: posixGroup
+        cn: ${group.id}
+        gidNumber: 1000
+        description: ${group.description}`;
+            (0, child_process_1.execSync)(`echo -e "${ldapAddCommand}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w Abacaxi10.`);
+            this.groups.push(group);
+            console.log(`O grupo ${group.description} foi criado com sucesso.`);
+        }
+        catch (error) {
+            console.error("Erro ao adicionar grupo no LDAP: ", error);
         }
     }
 }

@@ -52,7 +52,7 @@ export class ParseService {
             return;
         }
         
-        this.storage.addGroup({id: groupId, description: groupDescription});
+        this.storage.addGroupToLDAP({id: groupId, description: groupDescription});
     }
 
     private handleAddUser(doc: Document){

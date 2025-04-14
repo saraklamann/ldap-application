@@ -111,6 +111,11 @@ async function showGroupMenu() {
 function main(){
   storage.getGroupsFromLDAP();
   storage.getUsersFromLDAP();
+
+  const xml = readXMLFile("AddGrupo1.xml");
+  parseService.execute(xml);
+
+  storage.getGroupsFromLDAP();
 }
 
 main();

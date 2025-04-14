@@ -50,7 +50,7 @@ class ParseService {
             console.error("Faltam informações sobre o grupo no documento XML.");
             return;
         }
-        this.storage.addGroup({ id: groupId, description: groupDescription });
+        this.storage.addGroupsToLDAP({ id: groupId, description: groupDescription });
     }
     handleAddUser(doc) {
         const nameNode = xpath_1.default.select("//add-attr[@attr-name='Nome Completo']/value/text()", doc)[0];
