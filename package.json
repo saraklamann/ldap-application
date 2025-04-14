@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "dotenv": "^16.5.0",
     "prompt-sync": "^4.2.0",
     "readline-sync": "^1.4.10",
     "typescript": "^5.8.3",

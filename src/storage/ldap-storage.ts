@@ -2,6 +2,9 @@ import { User } from "../models/user";
 import { Group } from "../models/group";
 import { isValidName } from "../utils/validations";
 import { execSync } from "child_process";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export class LDAPStorage {
     private users: User[] = [];
@@ -149,7 +152,7 @@ export class LDAPStorage {
         }
 
         const gidNumber = this.generateGidNumber()
-        const ldapAddCommand = `echo -e "dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br\\nobjectClass: posixGroup\\ncn: ${group.id}\\ngidNumber: ${gidNumber}\\ndescription: ${group.description}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin.`;
+        const ldapAddCommand = `echo -e "dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br\\nobjectClass: posixGroup\\ncn: ${group.id}\\ngidNumber: ${gidNumber}\\ndescription: ${group.description}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD}.`;
         
         console.log(ldapAddCommand)
         execSync(ldapAddCommand, { shell: "/bin/bash" });
