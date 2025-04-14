@@ -50,7 +50,7 @@ class ParseService {
             console.error("Faltam informações sobre o grupo no documento XML.");
             return;
         }
-        this.storage.addGroupToLDAP({ id: groupId, description: groupDescription });
+        this.storage.addGroupToLDAP({ id: groupId, description: groupDescription, gidNumber: "" });
     }
     handleAddUser(doc) {
         const nameNode = xpath_1.default.select("//add-attr[@attr-name='Nome Completo']/value/text()", doc)[0];
@@ -85,7 +85,12 @@ class ParseService {
         const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc);
         const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
         const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
-        this.storage.modifyUserGroups(userLogin, groupsToAdd, groupsToRemove);
+        if (groupsToAdd.length > 0 || groupsToRemove.length > 0) {
+            this.storage.modifyUserGroups(userLogin, groupsToAdd, groupsToRemove);
+        }
+        else {
+            console.error("Nenhum grupo foi fornecido para adicionar ou remover.");
+        }
     }
 }
 exports.ParseService = ParseService;

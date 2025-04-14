@@ -52,7 +52,7 @@ export class ParseService {
             return;
         }
         
-        this.storage.addGroupToLDAP({id: groupId, description: groupDescription});
+        this.storage.addGroupToLDAP({id: groupId, description: groupDescription, gidNumber: ""});
     }
 
     private handleAddUser(doc: Document){
@@ -87,18 +87,22 @@ export class ParseService {
 
         const userNode = (select("//modify/association[@state='associated']/text()", doc) as Node[])[0];
         const userLogin = userNode?.nodeValue?.trim() || "";
-
-        if(!userLogin){
+    
+        if (!userLogin) {
             console.error("Não foi possível encontrar o nome do usuário no documento XML.");
             return;
         }
-
+    
         const removeGroupNodes = select("//modify-attr[@attr-name='Grupo']/remove-value/value/text()", doc) as Node[];
         const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc) as Node[];
-
+    
         const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
         const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
-
-        this.storage.modifyUserGroups(userLogin, groupsToAdd, groupsToRemove);
+    
+        if (groupsToAdd.length > 0 || groupsToRemove.length > 0) {
+            this.storage.modifyUserGroups(userLogin, groupsToAdd, groupsToRemove);
+        } else {
+            console.error("Nenhum grupo foi fornecido para adicionar ou remover.");
+        }
     }
 }

@@ -130,8 +130,25 @@ async function showGroupMenu() {
 //   rl.close();
 // }
 function main() {
-    // const xml = readXMLFile("AddUsuario1.xml");
-    // parseService.execute(xml);
+    console.log("\n\n GET GRUPOS: \n\n");
+    storage.getGroupsFromLDAP();
+    console.log("\n\n GET USUARIOS: \n\n");
     storage.getUsersFromLDAP();
+    // console.log("\n\n ADD GRUPO 1: \n\n")
+    // let xml = readXMLFile("addGrupo1.xml");
+    // parseService.execute(xml)
+    // console.log("\n\n ADD GRUPO 2: \n\n")
+    // xml = readXMLFile("addGrupo2.xml");
+    // parseService.execute(xml)
+    // console.log("\n\n ADD USUARIO 1: \n\n")
+    // const xml = readXMLFile("AddUsuario1.xml");
+    // parseService.execute(xml)
+    // storage.getUsersFromLDAP();
+    // let xml = readXMLFile("addGrupo2.xml");
+    // parseService.execute(xml)
+    // xml = readXMLFile("addUsuario1.xml");
+    // parseService.execute(xml)
+    // storage.getUsersFromLDAP();
+    // // storage.getUsersFromLDAP();
 }
 main();
