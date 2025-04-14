@@ -1,0 +1,5 @@
+dn: cn=Grupo1,ou=groups,dc=openconsult,dc=com,dc=br
+objectClass: posixGroup
+cn: Grupo1
+gidNumber: 1000
+description: Grupo de Testes 1

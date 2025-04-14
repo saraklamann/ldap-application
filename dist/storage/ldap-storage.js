@@ -76,14 +76,17 @@ class LDAPStorage {
     }
     getGroupsFromLDAP() {
         try {
-            const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixGroup" cn`, {
-                encoding: "utf-8"
-            });
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "(objectClass=posixGroup)" cn`, { encoding: "utf-8" });
             const groupNames = result.split("\n")
                 .filter(line => line.startsWith("cn:"))
                 .map(line => line.replace("cn: ", "").trim());
-            console.log("Grupos encontrados no LDAP: ");
-            groupNames.forEach(name => console.log(`- ${name}`));
+            if (groupNames.length === 0) {
+                console.log("Nenhum grupo encontrado no LDAP.");
+            }
+            else {
+                console.log("Grupos encontrados no LDAP:");
+                groupNames.forEach(name => console.log(`- ${name}`));
+            }
         }
         catch (error) {
             console.error("Erro ao buscar grupos do LDAP: ", error);
@@ -91,9 +94,7 @@ class LDAPStorage {
     }
     getUsersFromLDAP() {
         try {
-            const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "objectClass=posixAccount" uid memberOf`, {
-                encoding: "utf-8"
-            });
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -LLL -b "ou=groups,dc=openconsult,dc=com,dc=br" "(objectClass=posixGroup)" cn`, { encoding: "utf-8" });
             const groupNames = result
                 .split("\n")
                 .filter(line => line.startsWith("cn:"))
@@ -108,7 +109,7 @@ class LDAPStorage {
     generateGidNumber() {
         return (1000 + this.groups.length).toString();
     }
-    addGroupsToLDAP(group) {
+    addGroupToLDAP(group) {
         try {
             const existingGroup = this.findGroupById(group.id);
             if (!(0, validations_1.isValidName)(group.id || group.description)) {
@@ -119,12 +120,18 @@ class LDAPStorage {
                 console.log(`O grupo com ID ${group.id} já existe.`);
                 return;
             }
-            const ldapAddCommand = `dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br
-        objectClass: posixGroup
-        cn: ${group.id}
-        gidNumber: 1000
-        description: ${group.description}`;
-            (0, child_process_1.execSync)(`echo -e "${ldapAddCommand}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w Abacaxi10.`);
+            const gidNumber = this.generateGidNumber();
+            // const ldapAddCommand = [
+            //   `dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br`,
+            //   `objectClass: posixGroup`,
+            //   `cn: ${group.id}`,
+            //   `gidNumber: 1001`,
+            //   `description: ${group.description}`,
+            // ].join("\n");
+            const ldapAddCommand = `echo -e "dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br\\nobjectClass: posixGroup\\ncn: ${group.id}\\ngidNumber: ${gidNumber}\\ndescription: ${group.description}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w Abacaxi10.`;
+            console.log(ldapAddCommand);
+            const output = (0, child_process_1.execSync)(ldapAddCommand, { stdio: "inherit", shell: "/bin/bash" });
+            // execSync(`echo -e ${ldapAddCommand} | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w Abacaxi10.`);
             this.groups.push(group);
             console.log(`O grupo ${group.description} foi criado com sucesso.`);
         }
