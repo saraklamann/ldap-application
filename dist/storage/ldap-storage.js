@@ -151,14 +151,14 @@ EOF`, { encoding: "utf-8", shell: "bash" });
         }
     }
     addGroup(group) {
-        const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
-        const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`;
-        const ldifContent = `
-objectClass: top
-objectClass: groupOfNames
-cn: qa
-member: 
-EOF`; // Melhorar se sobrar tempo
+        //     const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+        //     const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`
+        //     const ldifContent = `
+        // objectClass: top
+        // objectClass: groupOfNames
+        // cn: qa
+        // member: 
+        // EOF`; // Melhorar se sobrar tempo
         try {
             (0, child_process_1.execSync)(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
 dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br
