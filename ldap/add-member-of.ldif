@@ -1,0 +1,4 @@
+dn: cn=jdoe,ou=Users,dc=openconsult,dc=com,dc=br
+changetype: modify
+add: memberOf
+memberOf: cn=devs,ou=Groups,dc=openconsult,dc=com,dc=br

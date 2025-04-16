@@ -1,4 +1,62 @@
-# --- List organizational units in a domain: --- #
+# List organizational units in a domain: 
 
-ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "dc=openconsult,dc=com,dc=br" "(objectClass=organizationalUnit)"
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "dc=openconsult,dc=com,dc=br" "(objectClass=organizationalUnit)"
 
+# Insert group data in groups organizational unit: 
+
+--- ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=qa,ou=Groups,dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: groupOfNames
+cn: qa
+member: 
+EOF
+
+# Insert user data in users organizational unit:
+
+--- ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: uid=jdoe,ou=Users,dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: John Doe
+sn: Doe
+uid: jdoe
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/jdoe
+loginShell: /bin/bash
+mail: jdoe@openconsult.com.br
+EOF
+
+# Insert a user to a group (it automatically add memberof on user):
+
+--- ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=qa,ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+add: member
+member: uid=jdoe,ou=Users,dc=openconsult,dc=com,dc=br
+EOF
+
+# Remove member of a group
+
+--- ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=devs,ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+replace: member
+member: 
+EOF
+
+# Get groups
+
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)"
+
+# Get users with memberOfAttribute
+
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" "(objectClass=inetOrgPerson)" memberOf
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf
+
+# Get filtered users
+
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" "memberOf=cn=devs,ou=Groups,dc=openconsult,dc=com,dc=br"
