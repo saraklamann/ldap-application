@@ -109,7 +109,7 @@ const storage = new LDAPStorage();
 // }
 
 function main(){
-  storage.getGroups()
+  storage.getUsers()
 }
 
 main();

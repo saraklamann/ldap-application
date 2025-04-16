@@ -57,6 +57,14 @@ EOF
 --- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" "(objectClass=inetOrgPerson)" memberOf
 --- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf
 
+# Get users with memberOf Attribute and complete name
+
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" "(memberOf=*)" cn memberOf
+
 # Get filtered users
 
 --- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" "memberOf=cn=devs,ou=Groups,dc=openconsult,dc=com,dc=br"
+
+# Delete user
+
+--- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf

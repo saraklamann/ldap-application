@@ -127,6 +127,6 @@ const storage = new ldap_storage_1.LDAPStorage();
 //   rl.close();
 // }
 function main() {
-    storage.getGroupsFromLDAP();
+    storage.getUsers();
 }
 main();
