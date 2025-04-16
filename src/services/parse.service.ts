@@ -70,13 +70,6 @@ export class ParseService {
             console.error("Faltam informações sobre o usuário no documento XML.");
             return;
         }
-
-        // const invalidGroups = userGroups.filter(groupId => !this.storage.findGroupById(groupId));
-
-        // if (invalidGroups.length > 0) {
-        //     console.error(`Os seguintes grupos não existem: ${invalidGroups.join(", ")}`);
-        //     return;
-        // } 
         
         this.storage.addUser({cn_fullName: fullname, uid_username: username, phone: userPhone, groups: userGroups});
     }

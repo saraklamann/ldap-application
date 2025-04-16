@@ -105,19 +105,49 @@ EOF`, { encoding: "utf-8", shell: "bash" });
     }
     removeUserFromGroup(userId, groups) {
         try {
-            groups.forEach(cn => {
-                (0, child_process_1.execSync)(`
-ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
-dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
-changetype: modify
-replace: member
-member: 
-EOF`, { encoding: "utf-8", shell: "bash" });
-                console.log(`Grupo ${cn} adicionado com sucesso!`);
+            groups.forEach((cn) => {
+                const members = this.getMembers(cn);
+                const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
+                const ldifCommand = members.length > 1
+                    ? `
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+  changetype: modify
+  delete: member
+  member: ${userDn}
+  EOF`
+                    : `
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+  changetype: modify
+  replace: member
+  member:
+  EOF`;
+                (0, child_process_1.execSync)(ldifCommand, { encoding: "utf-8", shell: "bash" });
+                console.log(`Grupo ${cn} removido com sucesso!`);
             });
         }
         catch (error) {
-            console.error("Erro ao adicionar usuário ao grupo.", error);
+            console.error("Erro ao remover usuário do grupo:", error);
+        }
+    }
+    getMembers(groupId) {
+        try {
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`, { encoding: "utf-8", shell: "bash" });
+            const lines = result.split("\n");
+            const members = [];
+            lines.forEach((line) => {
+                if (line.startsWith("member:")) {
+                    const memberDn = line.replace("member: ", "").trim();
+                    if (memberDn)
+                        members.push(memberDn);
+                }
+            });
+            return members;
+        }
+        catch (error) {
+            console.error(`Erro ao buscar membros do grupo ${groupId}:`, error);
+            return [];
         }
     }
     addGroup(group) {
@@ -162,7 +192,7 @@ EOF`, { encoding: "utf-8", shell: "bash" });
             });
         }
         catch (error) {
-            console.error("Erro ao remover grupo.", error);
+            console.error("Erro ao modificar usuário.", error);
         }
     }
 }

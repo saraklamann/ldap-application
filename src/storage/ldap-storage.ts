@@ -2,8 +2,6 @@ import { User } from "../models/user";
 import { Group } from "../models/group";
 import { execSync } from "child_process";
 
-
-
 export class LDAPStorage {
   getGroups(): void {
     try {
@@ -123,20 +121,59 @@ EOF`, { encoding: "utf-8", shell: "bash" })
 
   removeUserFromGroup(userId: string, groups: string[]){
     try {
-      groups.forEach(cn => {
-        execSync(`
-ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
-dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
-changetype: modify
-replace: member
-member: 
-EOF`, { encoding: "utf-8", shell: "bash" })
-
-      console.log(`Grupo ${cn} adicionado com sucesso!`)
-      })
+      groups.forEach((cn) => {
+        const members = this.getMembers(cn);
+        const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
+  
+        const ldifCommand =
+          members.length > 1
+            ? `
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+  changetype: modify
+  delete: member
+  member: ${userDn}
+  EOF`
+            : `
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+  changetype: modify
+  replace: member
+  member:
+  EOF`;
+  
+        execSync(ldifCommand, { encoding: "utf-8", shell: "bash" });
+  
+        console.log(`Grupo ${cn} removido com sucesso!`);
+      });
     } catch (error) {
-      console.error("Erro ao adicionar usuário ao grupo.", error)
+      console.error("Erro ao remover usuário do grupo:", error);
     }
+  }
+
+  getMembers(groupId: string): string[]{
+    try {
+      const result = execSync(
+        `ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`,
+        { encoding: "utf-8", shell: "bash" }
+      );
+  
+      const lines = result.split("\n");
+      const members: string[] = [];
+  
+      lines.forEach((line) => {
+        if (line.startsWith("member:")) {
+          const memberDn = line.replace("member: ", "").trim();
+          if (memberDn) members.push(memberDn);
+        }
+      });
+  
+      return members;
+    } catch (error) {
+      console.error(`Erro ao buscar membros do grupo ${groupId}:`, error);
+      return [];
+    }
+  
   }
 
   addGroup(group: Group): void {
@@ -180,11 +217,10 @@ member:
 EOF`, { encoding: "utf-8", shell: "bash" });
         
         console.log(`Usuário ${username} removido do grupo ${groupId}`);
-
-          this.addUserToGroup(username, groupsToAdd)
+        this.addUserToGroup(username, groupsToAdd)
       });
     } catch (error) {
-      console.error("Erro ao remover grupo.", error)
+      console.error("Erro ao modificar usuário.", error)
     }
   }
 }
