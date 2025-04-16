@@ -109,7 +109,7 @@ const storage = new LDAPStorage();
 // }
 
 function main(){
-  console.log("hello world")
+  storage.getGroups()
 }
 
 main();
