@@ -51,8 +51,11 @@ export class ParseService {
             console.error("Faltam informações sobre o grupo no documento XML.");
             return;
         }
+
+        const cleanedGroupUid = groupId.replace(/[^a-zA-Z0-9]/g, "")
+        const cleanedGroupDescription = groupDescription.replace(/[^a-zA-Z\s]/g, "");
         
-        this.storage.addGroup({cn_id: groupId, description: groupDescription, member: []});
+        this.storage.addGroup({cn_id: cleanedGroupUid, description: cleanedGroupDescription, member: []});
     }
 
     private handleAddUser(doc: Document){
@@ -70,8 +73,12 @@ export class ParseService {
             console.error("Faltam informações sobre o usuário no documento XML.");
             return;
         }
+
+        const cleanedName = fullname.replace(/[^a-zA-Z\s]/g, "");
+        const cleanedUsername = username.replace(/[^a-zA-Z0-9]/g, "");
+        const cleanedPhone = userPhone.replace(/\D/g, "");
         
-        this.storage.addUser({cn_fullName: fullname, uid_username: username, phone: userPhone, groups: userGroups});
+        this.storage.addUser({cn_fullName: cleanedName, uid_username: cleanedUsername, phone: cleanedPhone, groups: userGroups});
     }
 
     private handleModifyUser(doc: Document){

@@ -1,8 +1,8 @@
 # Lê arquivos XML utilizando XPath ✅
 # Classes e atributos nativos do LDAP ✅
-# Nome deve conter apenas texto 
-# Nome de usuário  deve conter apenas texto 
-# Telefone deve conter apenas números
+# Nome deve conter apenas texto ✅
+# Nome de usuário  deve conter apenas texto ✅
+# Telefone deve conter apenas números ✅
 # Usuários e grupos devem estar em conteiners distintos ✅
 
 # Adicionar usuário ✅
