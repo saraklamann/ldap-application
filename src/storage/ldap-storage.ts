@@ -115,6 +115,13 @@ export class LDAPStorage {
   }
 
   addUser(user: User): void {
+    const users = this.getUsers();
+
+    if (users.find(u => u.uid_username === user.uid_username)) {
+      console.log(`O usuário ${user.uid_username} já existe.`);
+      return;
+    }
+
     const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
     const dn = `dn: uid=${user.uid_username},ou=Users,dc=openconsult,dc=com,dc=br`
     const ldifContent = `
@@ -146,7 +153,36 @@ telephoneNumber: ${user.phone}`; // Melhorar se sobrar tempo
 
   addUserToGroup(userId: string, groups: string[]){
     try {
+      const users = this.getUsers();
+      const userExists = users.some(u => u.uid_username === userId);
+
+      if (!userExists) {
+        console.log(`O usuário ${userId} não existe.`);
+        return;
+      }
+
       groups.forEach(cn => {
+        const groups = this.getGroups();
+        const groupExists = groups.some(g => g.cn_id === cn);
+
+        if (!groupExists) {
+          console.log(`O grupo ${cn} não existe.`);
+          return;
+        }
+
+        const group = groups.find(g => g.cn_id === cn);
+        const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
+
+        if (group?.member.includes(userDn)) {
+          console.log(`O usuário ${userId} já faz parte do grupo ${cn}.`);
+          return;
+        }
+
+        if (!group?.member.includes(userDn)) {
+          console.log(`O usuário ${userId} já faz parte do grupo ${cn}.`);
+          return;
+        }
+
         execSync(`
 ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
 dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
@@ -164,6 +200,32 @@ EOF`, { encoding: "utf-8", shell: "bash" })
 
   removeUserFromGroup(userId: string, groups: string[]){
     try {
+      const users = this.getUsers();
+      const userExists = users.some(u => u.uid_username === userId);
+
+      if (!userExists) {
+        console.log(`O usuário ${userId} não existe.`);
+        return;
+      }
+
+      groups.forEach(cn => {
+        const groups = this.getGroups();
+        const groupExists = groups.some(g => g.cn_id === cn);
+
+        if (!groupExists) {
+          console.log(`O grupo ${cn} não existe.`);
+          return;
+        }
+
+        const group = groups.find(g => g.cn_id === cn);
+        const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
+
+        if (!group?.member.includes(userDn)) {
+          console.log(`O usuário ${userId} não faz parte do grupo ${cn}.`);
+          return;
+        }
+      })
+
       groups.forEach((cn) => {
         const members = this.getMembers(cn);
         const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
@@ -220,6 +282,13 @@ EOF`, { encoding: "utf-8", shell: "bash" })
 
   addGroup(group: Group): void {
     try {
+      const groups = this.getGroups();
+
+      if (groups.find(g => g.cn_id === group.cn_id)) {
+        console.log(`O grupo ${group.cn_id} já existe.`);
+        return;
+      }
+
       execSync(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
 dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br
 objectClass: top
@@ -256,4 +325,6 @@ EOF`, { encoding: "utf-8", shell: "bash" });
       console.error("Erro ao modificar usuário.", error)
     }
   }
+
+
 }

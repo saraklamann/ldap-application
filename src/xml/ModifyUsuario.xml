@@ -1,5 +1,5 @@
 <modify class-name="Usuario">
-  <association state="associated">teste1</association>
+  <association state="associated">Teste1</association>
   <modify-attr attr-name="Grupo">
 	<remove-value>
 	  <value type="string">Grupo2</value>
