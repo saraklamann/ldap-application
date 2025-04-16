@@ -1,0 +1,15 @@
+password: simple
+days:
+  - Monday
+  - Wednesday
+  - Friday
+devices:
+  android: false
+  windows: true
+development:
+  username: admin
+  devices:
+    android: true
+    ios: true
+production:
+  password: secret

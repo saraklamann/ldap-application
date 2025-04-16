@@ -1,18 +1,16 @@
+# Create organization and domain
 dn: dc=openconsult,dc=com,dc=br
 objectClass: top
 objectClass: domain
+dc: openconsult
 
-dn: ou=People,dc=openconsult,dc=com,dc=br
-objectClass: top
+# Create organizacional unit for users
+dn: ou=Users,dc=openconsult,dc=com,dc=br
 objectClass: organizationalUnit
-ou: People
+ou: Users
 
+# Create organizacional unit for groups
 dn: ou=Groups,dc=openconsult,dc=com,dc=br
-objectClass: top
 objectClass: organizationalUnit
 ou: Groups
 
-dn: dc=openconsult,dc=com,dc=br
-objectClass: top
-objectClass: organization
-o: openconsult

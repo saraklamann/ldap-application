@@ -1,197 +1,226 @@
 import { User } from "../models/user";
 import { Group } from "../models/group";
-import { isValidName } from "../utils/validations";
 import { execSync } from "child_process";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 export class LDAPStorage {
-    private users: User[] = [];
-    private groups: Group[] = [];
-
-    addUser(user: User) {
-      const existingUser = this.findUserByUsername(user.username);
-
-      if (!isValidName(user.fullName || user.username)) {
-        console.log("Nome do usuário ou nome completo não podem estar em branco.");
-        return;
-      }
-
-      if (existingUser) {
-        console.log(`O nome de usuário ${user.username} já existe.`);
-        return;
-      }
-
-      this.users.push(user);
-      console.log(`O usuário ${user.username} foi criado com sucesso.`);
-    }
-
-    private findUserByUsername(username: string): User | undefined {
-        return this.users.find(user => user.username.toLocaleLowerCase() === username.toLocaleLowerCase());
-    }
-    
-    findGroupById(groupId: string): Group | undefined {
-      if (this.groups.length === 0) {
-        this.groups = this.getGroupsFromLDAP();
-      }
-
-      return this.groups.find(group => group.id.toLocaleLowerCase() === groupId.toLocaleLowerCase());
-    }
-
-    modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]): void {
-        const user = this.findUserByUsername(username);
-        
-        if (!user) {
-          console.log(`O usuário ${username} não foi encontrado.`);
-          return;
-        }
-        
-        groupsToAdd.forEach(groupId => {
-          const group = this.findGroupById(groupId);
-
-          if (group && !user.groups.includes(group.id)) {
-            user.groups.push(groupId);
-            console.log(`O grupo ${groupId} foi adicionado ao usuário ${username}.`);
-          } else if (!group) {
-            console.log(`O grupo ${groupId} não foi encontrado.`);
-          }
-        });
-      
-        groupsToRemove.forEach(groupId => {
-            const group = this.findGroupById(groupId); 
-
-            if (group && user.groups.includes(groupId)) {
-              const groupIndex = user.groups.indexOf(groupId); 
-              user.groups.splice(groupIndex, 1);
-              console.log(`O grupo ${groupId} foi removido do usuário ${username}.`);
-            } else if (!group) {
-              console.log(`O grupo ${groupId} não foi encontrado.`);
-            }
-        });
-    }
-
-    getGroupsFromLDAP(): Group[] {
-      const groups: Group[] = [];
-      
-      try {
-        const result = execSync(
-          `ldapsearch -x -LLL -b "dc=openconsult,dc=com,dc=br" "(objectClass=posixGroup)" cn gidNumber description`,
-          { encoding: "utf-8" }
-        );
-    
-        const groupEntries = result.split("\n\n");
-    
-        groupEntries.forEach(entry => {
-          const lines = entry.split("\n");
-          const cnLine = lines.find(line => line.startsWith("cn:"));
-          const descriptionLine = lines.find(line => line.startsWith("description:"));
-    
-          if (cnLine && descriptionLine) {
-            const groupName = cnLine.replace("cn: ", "").trim();
-            const description = descriptionLine.replace("description: ", "").trim();
-    
-            groups.push({ id: groupName, description });
-          }
-        });
-    
-        if (groups.length === 0) {
-          console.log("Nenhum grupo encontrado no LDAP.");
-        } else {
-          console.log("Grupos encontrados no LDAP:");
-          groups.forEach(group => console.log(`- ${group.description}`));
-        }
-    
-      } catch (error) {
-        console.error("Erro ao buscar grupos do LDAP: ", error);
-      }
-    
-      return groups;
-    }
-    
-    getUsersFromLDAP(): void {
-      try {
-        const result = execSync(
-          `ldapsearch -x -LLL -b "ou=users,dc=openconsult,dc=com,dc=br" "(objectClass=inetOrgPerson)" cn uid`, 
-          { encoding: "utf-8" }
-        );
-    
-        // Extrai o nome (cn) e o uid dos usuários encontrados
-        const userNames = result
-            .split("\n")
-            .filter(line => line.startsWith("cn:") || line.startsWith("uid:"))
-            .reduce((acc, line) => {
-                const [key, value] = line.split(":").map(str => str.trim());
-                if (key === "cn") acc.push({
-                  cn: value,
-                  uid: ""
-                });
-                if (key === "uid" && acc.length > 0) acc[acc.length - 1].uid = value;
-                return acc;
-            }, [] as { cn: string, uid: string }[]);
-
-        if (userNames.length === 0) {
-            console.log("Nenhum usuário encontrado no LDAP.");
-        } else {
-            console.log("Usuários encontrados no LDAP:");
-            userNames.forEach(user => console.log(`- ${user.cn} (UID: ${user.uid})`));
-        }
-    } catch (error) {
-        console.error("Erro ao buscar usuários do LDAP: ", error);
-    }
-    }
-    
-    private generateGidNumber(type: "Group" | "User" ): string {
-      return type === "Group" ? (1000 + this.groups.length).toString() : (1000 + this.users.length).toString();
-    }
-
-    addGroupToLDAP(group: Group){
-      try{
-        const existingGroup = this.findGroupById(group.id);
-
-        if (!isValidName(group.id || group.description)) {
-          console.log("O ID de um grupo ou a descrição não podem estar em branco.");
-          return;
-        }
-    
-        if (existingGroup) {
-          console.log(`O grupo com ID ${group.id} já existe.`);
-          return;
-        }
-
-        const gidNumber = this.generateGidNumber("Group")
-        const command = `echo -e "dn: cn=${group.id},ou=groups,dc=openconsult,dc=com,dc=br\\nobjectClass: posixGroup\\ncn: ${group.id}\\ngidNumber: ${gidNumber}\\ndescription: ${group.description}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD}.`;
-        
-        execSync(command, { shell: "/bin/bash" });
-        
-        this.groups.push(group);
-        console.log(`O grupo ${group.description} foi criado com sucesso.`);
-      } catch (error) {
-        console.error("Erro ao adicionar grupo no LDAP: ", error);
-      }
-    }
-
-    addUserToLDAP(user: User) {
+  getGroups(): void {
     try {
-      // const groupsDNs = user.groups.map(groupId => `cn=${groupId},ou=groups,dc=openconsult,dc=com,dc=br`).join(" ");
-      const gidNumber = this.generateGidNumber("User")
+      const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)"`, {
+        encoding: "utf-8",
+        shell: "bash"
+      });
 
-      // Gerar o comando de adição de usuário no formato LDIF
-      const command = `echo -e "dn: cn=${user.username},ou=users,dc=openconsult,dc=com,dc=br\\nobjectClass: inetOrgPerson\\ncn: ${user.fullName}\\nsn: ${user.fullName.split(' ')[1] || ''}\\nuid: ${user.username}\\ntelephoneNumber: ${user.phone}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD}`;
+      const groupNames = result.split("\n")
+        .filter(line => line.startsWith("cn:")) 
+        .map(line => line.replace("cn: ", "").trim()); 
 
-      // Executar o comando no shell
-      execSync(command, { shell: "/bin/bash" });
-
-      const groupsString = user.groups
-      .map(group => `cn=${group},ou=groups,dc=openconsult,dc=com,dc=br`)
-      .join(' ');  // Junta todos os grupos em uma única string separada por espaços
-
-      const addUserToGroupsCommand = `echo -e "dn: cn=${user.username},ou=users,dc=openconsult,dc=com,dc=br\\nobjectClass: inetOrgPerson\\ncn: ${user.fullName}\\nsn: ${user.fullName.split(' ')[1] || ''}\\nuid: ${user.username}\\ntelephoneNumber: ${user.phone}\\nmemberOf: ${groupsString}" | ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD}`;
-      execSync(addUserToGroupsCommand, { shell: "/bin/bash" });
-
-      console.log(`Usuário ${user.username} adicionado com sucesso!`);
-  } catch (error) {
-      console.error("Erro ao adicionar usuário no LDAP: ", error);
+      console.log("Grupos encontrados no LDAP: \n");
+      groupNames.forEach(name => console.log(`- ${name}`));
+    } catch (error) {
+      console.error("Erro ao buscar grupos do LDAP: ", error);
+    }
   }
-}
+
+  getUsers(): void {
+    try {
+      const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf uid cn telephoneNumber`, {
+        encoding: "utf-8",
+        shell: "bash"
+      });
+
+      const lines = result.split("\n");
+
+      let user: { uid?: string; cn?: string; telephoneNumber?: string ;memberOf: string[] } = { memberOf: [] };
+      let userId = 1;
+
+      lines.forEach((line) => {
+        if (line.startsWith("uid:")) {
+          if (user.uid && user.cn) {
+            const groups = user.memberOf.length > 0 ? user.memberOf.join(", ") : "Esse usuário ainda não possui grupos."
+              console.log(
+                `[${userId}] Usuário: ${user.uid} | Nome completo: ${user.cn} | Telefone: ${user.telephoneNumber} | Grupos: ${groups}`
+              );
+            userId++;
+          }
+          user = { uid: line.replace("uid: ", "").trim(), memberOf: [] };
+        }
+
+        if (line.startsWith("cn:")) {
+          user.cn = line.replace("cn: ", "").trim();
+        }
+
+        if (line.startsWith("telephoneNumber:")) {
+          user.telephoneNumber = line.replace("telephoneNumber: ", "").trim();
+        }
+
+        if (line.startsWith("memberOf:")) {
+          const group = line.replace("memberOf: ", "").trim();
+          const groupName = group.split(",")[0].replace("cn=", "");
+          user.memberOf.push(groupName); 
+        }
+      });
+
+      if (user.uid && user.cn) {
+        const groups = user.memberOf.length > 0 ? user.memberOf.join(", ") : "Esse usuário ainda não possui grupos."
+        console.log(
+          `[${userId}] Usuário: ${user.uid} | Nome completo: ${user.cn} | Telefone: ${user.telephoneNumber} | Grupos: ${groups}`
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao buscar usuários do LDAP: ", error);
+    }
+  }
+  
+  addUser(user: User): void {
+    const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+    const dn = `dn: uid=${user.uid_username},ou=Users,dc=openconsult,dc=com,dc=br`
+    const ldifContent = `
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: urltest-structure
+cn: ${user.cn_fullName}
+sn: name
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/johndoe
+loginShell: /bin/bash
+telephoneNumber: ${user.phone}`; // Melhorar se sobrar tempo
+
+    try {
+      execSync(url, {
+      input: dn + ldifContent, // Melhorar se sobrar tempo
+        encoding: "utf-8", 
+        shell: "bash"
+      });
+
+      user.groups.length > 0 ? this.addUserToGroup(user.uid_username, user.groups) : ""
+        console.log(`O usuário ${user.uid_username} foi adicionado com sucesso!`)
+    } catch (error) {
+      console.error("Erro ao adicionar usuário ao LDAP: ", error);
+    }
+  }
+
+  addUserToGroup(userId: string, groups: string[]){
+    try {
+      groups.forEach(cn => {
+        execSync(`
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+add: member
+member: uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br
+EOF`, { encoding: "utf-8", shell: "bash" })
+
+      console.log(`Grupo ${cn} adicionado com sucesso!`)
+      })
+    } catch (error) {
+      console.error("Erro ao adicionar usuário ao grupo.", error)
+    }
+  }
+
+  removeUserFromGroup(userId: string, groups: string[]){
+    try {
+      groups.forEach((cn) => {
+        const members = this.getMembers(cn);
+        const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
+  
+        const ldifCommand =
+          members.length > 1
+            ? `
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+  changetype: modify
+  delete: member
+  member: ${userDn}
+  EOF`
+            : `
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+  changetype: modify
+  replace: member
+  member:
+  EOF`;
+  
+        execSync(ldifCommand, { encoding: "utf-8", shell: "bash" });
+  
+        console.log(`Grupo ${cn} removido com sucesso!`);
+      });
+    } catch (error) {
+      console.error("Erro ao remover usuário do grupo:", error);
+    }
+  }
+
+  getMembers(groupId: string): string[]{
+    try {
+      const result = execSync(
+        `ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`,
+        { encoding: "utf-8", shell: "bash" }
+      );
+  
+      const lines = result.split("\n");
+      const members: string[] = [];
+  
+      lines.forEach((line) => {
+        if (line.startsWith("member:")) {
+          const memberDn = line.replace("member: ", "").trim();
+          if (memberDn) members.push(memberDn);
+        }
+      });
+  
+      return members;
+    } catch (error) {
+      console.error(`Erro ao buscar membros do grupo ${groupId}:`, error);
+      return [];
+    }
+  
+  }
+
+  addGroup(group: Group): void {
+    const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+    const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`
+    const ldifContent = `
+objectClass: top
+objectClass: groupOfNames
+cn: qa
+member: 
+EOF`; // Melhorar se sobrar tempo
+
+    try {
+      execSync(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: groupOfNames
+cn: ${group.cn_id}
+description: ${group.description}
+member: 
+EOF`, {
+        encoding: "utf-8", 
+        shell: "bash"
+      });
+
+      console.log(`O grupo ${group.cn_id} foi adicionado com sucesso!`)
+    } catch (error) {
+      console.error("Erro ao adicionar grupo ao LDAP: ", error);
+    }
+  }
+
+  modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]){  
+    try {
+      groupsToRemove.forEach(groupId => {
+        execSync(`
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+replace: member
+member: 
+EOF`, { encoding: "utf-8", shell: "bash" });
+        
+        console.log(`Usuário ${username} removido do grupo ${groupId}`);
+        this.addUserToGroup(username, groupsToAdd)
+      });
+    } catch (error) {
+      console.error("Erro ao modificar usuário.", error)
+    }
+  }
 }

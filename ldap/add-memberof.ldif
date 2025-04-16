@@ -1,0 +1,7 @@
+dn: cn=memberof,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: memberof
+
+olcAttributeTypes: ( 1.3.6.1.4.1.4203.1.11.3 NAME 'memberOf' DESC 'Group membership' EQUALITY distinguishedNameMatch SUBSTR distinguishedNameSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE )
+
+olcMatchingRules: ( 1.3.6.1.4.1.4203.1.11.3 NAME 'distinguishedNameSubstringsMatch' DESC 'LDAP distinguishedName substring matching' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 )

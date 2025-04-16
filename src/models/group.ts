@@ -1,4 +1,5 @@
 export interface Group {
-    id: string;
-    description: string;
+    cn_id: string;
+    description: string,
+    member: string[]
 }

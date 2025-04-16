@@ -1,0 +1,7 @@
+days:
+  - Monday
+  - Wednesday
+  - Friday
+devices:
+  android: false
+  windows: true

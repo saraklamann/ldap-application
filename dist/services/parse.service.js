@@ -50,34 +50,28 @@ class ParseService {
             console.error("Faltam informações sobre o grupo no documento XML.");
             return;
         }
-        this.storage.addGroupToLDAP({ id: groupId, description: groupDescription });
+        this.storage.addGroup({ cn_id: groupId, description: groupDescription, member: [] });
     }
     handleAddUser(doc) {
         const nameNode = xpath_1.default.select("//add-attr[@attr-name='Nome Completo']/value/text()", doc)[0];
         const loginNode = xpath_1.default.select("//add-attr[@attr-name='Login']/value/text()", doc)[0];
         const phoneNode = xpath_1.default.select("//add-attr[@attr-name='Telefone']/value/text()", doc)[0];
         const groupNodes = xpath_1.default.select("//add-attr[@attr-name='Grupo']/value/text()", doc);
-        const userName = nameNode?.nodeValue?.trim() || "";
-        const userLogin = loginNode?.nodeValue?.trim() || "";
+        const fullname = nameNode?.nodeValue?.trim() || "";
+        const username = loginNode?.nodeValue?.trim() || "";
         const userPhone = phoneNode?.nodeValue?.trim() || "";
         const userGroups = groupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
-        if (!userName || !userLogin || !userPhone) {
+        if (!fullname || !username || !userPhone) {
             console.error("Faltam informações sobre o usuário no documento XML.");
             return;
         }
-        const invalidGroups = userGroups.filter(groupId => !this.storage.findGroupById(groupId));
-        if (invalidGroups.length > 0) {
-            console.error(`Os seguintes grupos não existem: ${invalidGroups.join(", ")}`);
-            return;
-        }
-        const user = { fullName: userName, username: userLogin, phone: userPhone, groups: userGroups };
-        this.storage.addUserToLDAP(user);
+        this.storage.addUser({ cn_fullName: fullname, uid_username: username, phone: userPhone, groups: userGroups });
     }
     handleModifyUser(doc) {
         const select = xpath_1.default.useNamespaces({});
         const userNode = select("//modify/association[@state='associated']/text()", doc)[0];
-        const userLogin = userNode?.nodeValue?.trim() || "";
-        if (!userLogin) {
+        const username = userNode?.nodeValue?.trim() || "";
+        if (!username) {
             console.error("Não foi possível encontrar o nome do usuário no documento XML.");
             return;
         }
@@ -85,7 +79,7 @@ class ParseService {
         const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc);
         const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
         const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
-        this.storage.modifyUserGroups(userLogin, groupsToAdd, groupsToRemove);
+        this.storage.modifyUserGroups(username, groupsToAdd, groupsToRemove);
     }
 }
 exports.ParseService = ParseService;
