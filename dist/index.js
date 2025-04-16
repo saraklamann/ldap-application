@@ -45,7 +45,7 @@ const rl = readline.createInterface({
 const storage = new ldap_storage_1.LDAPStorage();
 const parseService = new parse_service_1.ParseService(storage);
 function showMenu() {
-    console.log("------ MENU --------\n");
+    console.log("------- MENU -------\n");
     console.log("[1] Adicionar Grupo");
     console.log("[2] Adicionar Usuário");
     console.log("[3] Modificar Usuário");

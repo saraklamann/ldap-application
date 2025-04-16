@@ -48,7 +48,7 @@ export class LDAPStorage {
     }
   }
 
-  getUsers(): void {
+  getUsers(): User[] {
     try {
       const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf uid cn telephoneNumber`, {
         encoding: "utf-8",
@@ -57,8 +57,9 @@ export class LDAPStorage {
 
       const lines = result.split("\n");
 
-      let user: { uid?: string; cn?: string; telephoneNumber?: string ;memberOf: string[] } = { memberOf: [] };
+      let user: { uid?: string; cn?: string; telephoneNumber?: string; memberOf: string[] } = { memberOf: [] };
       let userId = 1;
+      let users: User[] = []
 
       console.log("\n----------- USUÁRIOS ----------- \n");
       lines.forEach((line) => {
@@ -86,6 +87,17 @@ export class LDAPStorage {
           const groupName = group.split(",")[0].replace("cn=", "");
           user.memberOf.push(groupName); 
         }
+
+        if (user.uid && user.cn && user.telephoneNumber && user.memberOf.length > 0) {
+          const userObj: User = {
+            uid_username: user.uid,
+            cn_fullName: user.cn,
+            phone: user.telephoneNumber,
+            groups: user.memberOf || []
+          };
+      
+          users.push(userObj);
+        }
       });
 
       if (user.uid && user.cn) {
@@ -94,11 +106,14 @@ export class LDAPStorage {
           `[${userId}] Usuário: ${user.uid} | Nome completo: ${user.cn} | Telefone: ${user.telephoneNumber} | Grupos: ${groups}`
         );
       }
+
+      return users
     } catch (error) {
       console.error("Erro ao buscar usuários do LDAP: ", error);
+      return []
     }
   }
-  
+
   addUser(user: User): void {
     const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
     const dn = `dn: uid=${user.uid_username},ou=Users,dc=openconsult,dc=com,dc=br`

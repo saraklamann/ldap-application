@@ -53,6 +53,7 @@ class LDAPStorage {
             const lines = result.split("\n");
             let user = { memberOf: [] };
             let userId = 1;
+            let users = [];
             console.log("\n----------- USUÁRIOS ----------- \n");
             lines.forEach((line) => {
                 if (line.startsWith("uid:")) {
@@ -74,14 +75,25 @@ class LDAPStorage {
                     const groupName = group.split(",")[0].replace("cn=", "");
                     user.memberOf.push(groupName);
                 }
+                if (user.uid && user.cn && user.telephoneNumber && user.memberOf.length > 0) {
+                    const userObj = {
+                        uid_username: user.uid,
+                        cn_fullName: user.cn,
+                        phone: user.telephoneNumber,
+                        groups: user.memberOf || []
+                    };
+                    users.push(userObj);
+                }
             });
             if (user.uid && user.cn) {
                 const groups = user.memberOf.length > 0 ? user.memberOf.join(", ") : "Esse usuário ainda não possui grupos.";
                 console.log(`[${userId}] Usuário: ${user.uid} | Nome completo: ${user.cn} | Telefone: ${user.telephoneNumber} | Grupos: ${groups}`);
             }
+            return users;
         }
         catch (error) {
             console.error("Erro ao buscar usuários do LDAP: ", error);
+            return [];
         }
     }
     addUser(user) {

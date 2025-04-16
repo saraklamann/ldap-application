@@ -13,7 +13,7 @@ const storage = new LDAPStorage();
 const parseService = new ParseService(storage);
 
 function showMenu() {
-  console.log("------- MENU -------\n")
+  console.log("\n------- MENU -------\n")
   console.log("[1] Adicionar Grupo");
   console.log("[2] Adicionar Usuário");
   console.log("[3] Modificar Usuário");
