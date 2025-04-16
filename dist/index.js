@@ -33,14 +33,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const xml_reader_1 = require("./utils/xml-reader");
 const ldap_storage_1 = require("./storage/ldap-storage");
 // import { ParseService } from "./services/parse.service";
 const readline = __importStar(require("readline"));
+const parse_service_1 = require("./services/parse.service");
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 const storage = new ldap_storage_1.LDAPStorage();
+const parser = new parse_service_1.ParseService(storage);
 // const parseService = new ParseService(storage);
 // function showMenu() {
 //   console.log("\n------- MENU --------")
@@ -127,6 +130,8 @@ const storage = new ldap_storage_1.LDAPStorage();
 //   rl.close();
 // }
 function main() {
+    const addUserXML = (0, xml_reader_1.readXMLFile)("AddUsuario1.xml");
+    parser.execute(addUserXML);
     storage.getUsers();
 }
 main();

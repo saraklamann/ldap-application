@@ -15,19 +15,18 @@ EOF
 # Insert user data in users organizational unit:
 
 --- ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
-dn: uid=jdoe,ou=Users,dc=openconsult,dc=com,dc=br
-objectClass: top
+dn: uid=johndoe,ou=Users,dc=openconsult,dc=com,dc=br
 objectClass: inetOrgPerson
 objectClass: posixAccount
-objectClass: shadowAccount
+objectClass: top
+uid: johndoe
 cn: John Doe
 sn: Doe
-uid: jdoe
 uidNumber: 1001
 gidNumber: 1001
-homeDirectory: /home/jdoe
+homeDirectory: /home/johndoe
 loginShell: /bin/bash
-mail: jdoe@openconsult.com.br
+telephoneNumber: +123456789
 EOF
 
 # Insert a user to a group (it automatically add memberof on user):

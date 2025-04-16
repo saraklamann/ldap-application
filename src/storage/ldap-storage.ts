@@ -2,6 +2,8 @@ import { User } from "../models/user";
 import { Group } from "../models/group";
 import { execSync } from "child_process";
 
+
+
 export class LDAPStorage {
   getGroups(): void {
     try {
@@ -68,6 +70,54 @@ export class LDAPStorage {
       }
     } catch (error) {
       console.error("Erro ao buscar usuários do LDAP: ", error);
+    }
+  }
+  
+  addUser(user: User): void {
+    const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+    const dn = `dn: uid=${user.uid_username},ou=Users,dc=openconsult,dc=com,dc=br`
+    const ldifContent = `
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: urltest-structure
+cn: ${user.cn_fullName}
+sn: name
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/johndoe
+loginShell: /bin/bash
+telephoneNumber: ${user.phone}`; // Melhorar se sobrar tempo
+
+    try {
+      execSync(url, {
+      input: dn + ldifContent, // Melhorar se sobrar tempo
+        encoding: "utf-8", 
+        shell: "bash"
+      });
+
+      user.groups.length > 0 ? this.addUserToGroup(user.uid_username, user.groups) : ""
+        console.log(`O usuário ${user.uid_username} foi adicionado com sucesso!`)
+    } catch (error) {
+      console.error("Erro ao adicionar usuário ao LDAP: ", error);
+    }
+  }
+
+  addUserToGroup(userId: string, groups: string[]){
+    try {
+      groups.forEach(cn => {
+        execSync(`
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+add: member
+member: uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br
+EOF`, { encoding: "utf-8", shell: "bash" })
+
+      console.log(`Grupo ${cn} adicionado com sucesso!`)
+      })
+    } catch (error) {
+      console.error("Erro ao adicionar usuário ao grupo.", error)
     }
   }
 }

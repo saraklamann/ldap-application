@@ -3,6 +3,7 @@ import { LDAPStorage } from "./storage/ldap-storage";
 // import { ParseService } from "./services/parse.service";
 import * as readline from "readline";
 import { getAvailableGroupDescriptions } from "./utils/get-avaliable-groups";
+import { ParseService } from "./services/parse.service";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -10,6 +11,7 @@ const rl = readline.createInterface({
 });
 
 const storage = new LDAPStorage();
+const parser = new ParseService(storage);
 // const parseService = new ParseService(storage);
 
 // function showMenu() {
@@ -109,6 +111,9 @@ const storage = new LDAPStorage();
 // }
 
 function main(){
+  const addUserXML = readXMLFile("AddUsuario1.xml");
+  parser.execute(addUserXML);
+
   storage.getUsers()
 }
 
