@@ -50,7 +50,9 @@ class ParseService {
             console.error("Faltam informações sobre o grupo no documento XML.");
             return;
         }
-        this.storage.addGroup({ cn_id: groupId, description: groupDescription, member: [] });
+        const cleanedGroupUid = groupId.replace(/[^a-zA-Z0-9]/g, "");
+        const cleanedGroupDescription = groupDescription.replace(/[^a-zA-Z0-9 ]/g, "");
+        this.storage.addGroup({ cn_id: cleanedGroupUid, description: cleanedGroupDescription, member: [] });
     }
     handleAddUser(doc) {
         const nameNode = xpath_1.default.select("//add-attr[@attr-name='Nome Completo']/value/text()", doc)[0];
@@ -65,7 +67,10 @@ class ParseService {
             console.error("Faltam informações sobre o usuário no documento XML.");
             return;
         }
-        this.storage.addUser({ cn_fullName: fullname, uid_username: username, phone: userPhone, groups: userGroups });
+        const cleanedName = fullname.replace(/[^a-zA-Z\s]/g, "");
+        const cleanedUsername = username.replace(/[^a-zA-Z0-9]/g, "");
+        const cleanedPhone = userPhone.replace(/\D/g, "");
+        this.storage.addUser({ cn_fullName: cleanedName, uid_username: cleanedUsername, phone: cleanedPhone, groups: userGroups });
     }
     handleModifyUser(doc) {
         const select = xpath_1.default.useNamespaces({});

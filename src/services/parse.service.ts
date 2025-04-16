@@ -53,7 +53,7 @@ export class ParseService {
         }
 
         const cleanedGroupUid = groupId.replace(/[^a-zA-Z0-9]/g, "")
-        const cleanedGroupDescription = groupDescription.replace(/[^a-zA-Z\s]/g, "");
+        const cleanedGroupDescription = groupDescription.replace(/[^a-zA-Z0-9 ]/g, "");
         
         this.storage.addGroup({cn_id: cleanedGroupUid, description: cleanedGroupDescription, member: []});
     }

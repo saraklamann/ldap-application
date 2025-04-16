@@ -1,42 +1,49 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LDAPStorage = void 0;
 const child_process_1 = require("child_process");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 class LDAPStorage {
     getGroups() {
         try {
-            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)"`, {
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} -b "ou=Groups,dc=openconsult,dc=com,dc=br" cn description member`, {
                 encoding: "utf-8",
                 shell: "bash"
             });
-            const groupBlocks = result.split("\n\n");
-            const groups = groupBlocks.map(block => {
-                const lines = block.split("\n");
-                let cn_id = "";
-                let description = "";
-                let members = [];
-                lines.forEach(line => {
-                    if (line.startsWith("cn: ")) {
-                        cn_id = line.replace("cn: ", "").trim();
+            const lines = result.split("\n");
+            let group = { members: [] };
+            let groups = [];
+            lines.forEach((line) => {
+                if (line.startsWith("cn:")) {
+                    if (group.cn) {
+                        groups.push({
+                            cn_id: group.cn,
+                            description: group.description || "",
+                            member: group.members
+                        });
+                        group = { members: [] }; // inicia novo grupo
                     }
-                    else if (line.startsWith("description: ")) {
-                        description = line.replace("description: ", "").trim();
-                    }
-                    else if (line.startsWith("member: ")) {
-                        const member = line.replace("member: ", "").trim();
-                        members.push(member);
-                    }
-                });
-                if (cn_id) {
-                    return { cn_id, description, member: members };
+                    group.cn = line.replace("cn: ", "").trim();
                 }
-            }).filter(g => g !== undefined);
-            let groupId = 1;
-            console.log("\n----------- GRUPOS ----------- \n");
-            groups.forEach(group => {
-                console.log(`[${groupId}] ${group.cn_id} | ${group.description}`);
-                groupId++;
+                if (line.startsWith("description:")) {
+                    group.description = line.replace("description: ", "").trim();
+                }
+                if (line.startsWith("member:")) {
+                    const member = line.replace("member: ", "").trim();
+                    group.members.push(member);
+                }
             });
+            if (group.cn) {
+                groups.push({
+                    cn_id: group.cn,
+                    description: group.description || "",
+                    member: group.members
+                });
+            }
             return groups;
         }
         catch (error) {
@@ -46,21 +53,22 @@ class LDAPStorage {
     }
     getUsers() {
         try {
-            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf uid cn telephoneNumber`, {
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf uid cn telephoneNumber`, {
                 encoding: "utf-8",
                 shell: "bash"
             });
             const lines = result.split("\n");
             let user = { memberOf: [] };
-            let userId = 1;
             let users = [];
-            console.log("\n----------- USUÁRIOS ----------- \n");
             lines.forEach((line) => {
                 if (line.startsWith("uid:")) {
                     if (user.uid && user.cn) {
-                        const groups = user.memberOf.length > 0 ? user.memberOf.join(", ") : "Esse usuário ainda não possui grupos.";
-                        console.log(`[${userId}] Usuário: ${user.uid} | Nome completo: ${user.cn} | Telefone: ${user.telephoneNumber} | Grupos: ${groups}`);
-                        userId++;
+                        users.push({
+                            uid_username: user.uid,
+                            cn_fullName: user.cn,
+                            phone: user.telephoneNumber || "",
+                            groups: user.memberOf
+                        });
                     }
                     user = { uid: line.replace("uid: ", "").trim(), memberOf: [] };
                 }
@@ -75,19 +83,14 @@ class LDAPStorage {
                     const groupName = group.split(",")[0].replace("cn=", "");
                     user.memberOf.push(groupName);
                 }
-                if (user.uid && user.cn && user.telephoneNumber && user.memberOf.length > 0) {
-                    const userObj = {
-                        uid_username: user.uid,
-                        cn_fullName: user.cn,
-                        phone: user.telephoneNumber,
-                        groups: user.memberOf || []
-                    };
-                    users.push(userObj);
-                }
             });
             if (user.uid && user.cn) {
-                const groups = user.memberOf.length > 0 ? user.memberOf.join(", ") : "Esse usuário ainda não possui grupos.";
-                console.log(`[${userId}] Usuário: ${user.uid} | Nome completo: ${user.cn} | Telefone: ${user.telephoneNumber} | Grupos: ${groups}`);
+                users.push({
+                    uid_username: user.uid,
+                    cn_fullName: user.cn,
+                    phone: user.telephoneNumber || "",
+                    groups: user.memberOf
+                });
             }
             return users;
         }
@@ -102,7 +105,7 @@ class LDAPStorage {
             console.log(`O usuário ${user.uid_username} já existe.`);
             return;
         }
-        const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+        const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD}`;
         const dn = `dn: uid=${user.uid_username},ou=Users,dc=openconsult,dc=com,dc=br`;
         const ldifContent = `
 objectClass: inetOrgPerson
@@ -122,8 +125,10 @@ telephoneNumber: ${user.phone}`; // Melhorar se sobrar tempo
                 encoding: "utf-8",
                 shell: "bash"
             });
-            user.groups.length > 0 ? this.addUserToGroup(user.uid_username, user.groups) : "";
-            console.log(`O usuário ${user.uid_username} foi adicionado com sucesso!`);
+            if (user.groups.length > 0) {
+                this.addUserToGroup(user.uid_username, user.groups);
+            }
+            console.log(`O usuário ${user.uid_username} foi adicionado com sucesso.`);
         }
         catch (error) {
             console.error("Erro ao adicionar usuário ao LDAP: ", error);
@@ -150,12 +155,8 @@ telephoneNumber: ${user.phone}`; // Melhorar se sobrar tempo
                     console.log(`O usuário ${userId} já faz parte do grupo ${cn}.`);
                     return;
                 }
-                if (!group?.member.includes(userDn)) {
-                    console.log(`O usuário ${userId} já faz parte do grupo ${cn}.`);
-                    return;
-                }
                 (0, child_process_1.execSync)(`
-ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
 dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
 changetype: modify
 add: member
@@ -176,41 +177,39 @@ EOF`, { encoding: "utf-8", shell: "bash" });
                 console.log(`O usuário ${userId} não existe.`);
                 return;
             }
-            groups.forEach(cn => {
-                const groups = this.getGroups();
-                const groupExists = groups.some(g => g.cn_id === cn);
-                if (!groupExists) {
+            const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
+            for (const cn of groups) {
+                const groupList = this.getGroups();
+                const group = groupList.find(g => g.cn_id === cn);
+                if (!group) {
                     console.log(`O grupo ${cn} não existe.`);
                     return;
                 }
-                const group = groups.find(g => g.cn_id === cn);
-                const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
-                if (!group?.member.includes(userDn)) {
+                if (!group.member?.includes(userDn)) {
                     console.log(`O usuário ${userId} não faz parte do grupo ${cn}.`);
                     return;
                 }
-            });
-            groups.forEach((cn) => {
+            }
+            for (const cn of groups) {
                 const members = this.getMembers(cn);
-                const userDn = `uid=${userId},ou=Users,dc=openconsult,dc=com,dc=br`;
                 const ldifCommand = members.length > 1
                     ? `
-  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
-  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
-  changetype: modify
-  delete: member
-  member: ${userDn}
-  EOF`
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
+dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+delete: member
+member: ${userDn}
+EOF`
                     : `
-  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
-  dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
-  changetype: modify
-  replace: member
-  member:
-  EOF`;
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
+dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+replace: member
+member:
+EOF`;
                 (0, child_process_1.execSync)(ldifCommand, { encoding: "utf-8", shell: "bash" });
-                console.log(`Grupo ${cn} removido com sucesso!`);
-            });
+                console.log(`Usuário ${userId} removido do grupo ${cn} com sucesso!`);
+            }
         }
         catch (error) {
             console.error("Erro ao remover usuário do grupo:", error);
@@ -218,7 +217,7 @@ EOF`, { encoding: "utf-8", shell: "bash" });
     }
     getMembers(groupId) {
         try {
-            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`, { encoding: "utf-8", shell: "bash" });
+            const result = (0, child_process_1.execSync)(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`, { encoding: "utf-8", shell: "bash" });
             const lines = result.split("\n");
             const members = [];
             lines.forEach((line) => {
@@ -242,7 +241,7 @@ EOF`, { encoding: "utf-8", shell: "bash" });
                 console.log(`O grupo ${group.cn_id} já existe.`);
                 return;
             }
-            (0, child_process_1.execSync)(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+            (0, child_process_1.execSync)(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
 dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br
 objectClass: top
 objectClass: groupOfNames
@@ -261,17 +260,8 @@ EOF`, {
     }
     modifyUserGroups(username, groupsToAdd, groupsToRemove) {
         try {
-            groupsToRemove.forEach(groupId => {
-                (0, child_process_1.execSync)(`
-ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
-dn: cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br
-changetype: modify
-replace: member
-member: 
-EOF`, { encoding: "utf-8", shell: "bash" });
-                console.log(`Usuário ${username} removido do grupo ${groupId}`);
-                this.addUserToGroup(username, groupsToAdd);
-            });
+            this.removeUserFromGroup(username, groupsToRemove);
+            this.addUserToGroup(username, groupsToAdd);
         }
         catch (error) {
             console.error("Erro ao modificar usuário.", error);

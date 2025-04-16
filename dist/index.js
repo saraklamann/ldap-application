@@ -38,6 +38,7 @@ const ldap_storage_1 = require("./storage/ldap-storage");
 const readline = __importStar(require("readline"));
 const get_avaliable_groups_1 = require("./utils/get-avaliable-groups");
 const parse_service_1 = require("./services/parse.service");
+const display_groups_1 = require("./utils/display-groups");
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -101,10 +102,21 @@ async function main() {
                 parseService.execute(modifyUserXML);
                 break;
             case "4":
-                storage.getGroups();
+                (0, display_groups_1.displayGroups)(storage);
+                // const groups = storage.getGroups();
+                // console.log("\n----------- GRUPOS -----------\n");
+                // groups.forEach((group, index) => {
+                //   const members = group.member.length > 0 ? group.member.join(", ") : "Esse grupo ainda não possui membros.";
+                //   console.log(`[${index + 1}] Grupo: ${group.cn_id} | Descrição: ${group.description} | Membros: ${members}`);
+                // });
                 break;
             case "5":
-                storage.getUsers();
+                const users = storage.getUsers();
+                console.log("\n----------- USUÁRIOS -----------\n");
+                users.forEach((user, index) => {
+                    const groups = user.groups.length > 0 ? user.groups.join(", ") : "Esse usuário ainda não possui grupos.";
+                    console.log(`[${index + 1}] Usuário: ${user.uid_username} | Nome completo: ${user.cn_fullName} | Telefone: ${user.phone} | Grupos: ${groups}`);
+                });
                 break;
             case "0":
                 exit = true;

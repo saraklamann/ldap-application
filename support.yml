@@ -67,3 +67,11 @@ EOF
 # Delete user
 
 --- ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf
+
+# Delete all groups
+
+--- ldapsearch -x -LLL -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)" dn | grep "^dn:" | cut -d ' ' -f2- | while read dn; do   echo "Deletando grupo: $dn";   ldapdelete -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin "$dn"; done
+
+# Delete all users
+
+---  ldapsearch -x -LLL -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" "(objectClass=inetOrgPerson)" dn | grep "^dn:" | cut -d ' ' -f2- | while read dn; do   echo "Deletando: $dn";   ldapdelete -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin "$dn"; done
