@@ -26,7 +26,7 @@ export class ParseService {
                 break;
             case "modify":
                 if(className === "Usuario") {
-                    // this.handleModifyUser(doc);
+                    this.handleModifyUser(doc);
                 } else {
                     console.log(`Método não implementado para a entidade ${className}.`);
                 }
@@ -81,23 +81,23 @@ export class ParseService {
         this.storage.addUser({cn_fullName: fullname, uid_username: username, phone: userPhone, groups: userGroups});
     }
 
-    // private handleModifyUser(doc: Document){
-    //     const select = xpath.useNamespaces({});
+    private handleModifyUser(doc: Document){
+        const select = xpath.useNamespaces({});
 
-    //     const userNode = (select("//modify/association[@state='associated']/text()", doc) as Node[])[0];
-    //     const username = userNode?.nodeValue?.trim() || "";
+        const userNode = (select("//modify/association[@state='associated']/text()", doc) as Node[])[0];
+        const username = userNode?.nodeValue?.trim() || "";
 
-    //     if(!username){
-    //         console.error("Não foi possível encontrar o nome do usuário no documento XML.");
-    //         return;
-    //     }
+        if(!username){
+            console.error("Não foi possível encontrar o nome do usuário no documento XML.");
+            return;
+        }
 
-    //     const removeGroupNodes = select("//modify-attr[@attr-name='Grupo']/remove-value/value/text()", doc) as Node[];
-    //     const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc) as Node[];
+        const removeGroupNodes = select("//modify-attr[@attr-name='Grupo']/remove-value/value/text()", doc) as Node[];
+        const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc) as Node[];
 
-    //     const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
-    //     const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
+        const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
+        const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value): value is string => value !== undefined);
 
-    //     this.storage.modifyUserGroups(username, groupsToAdd, groupsToRemove);
-    // }
+        this.storage.modifyUserGroups(username, groupsToAdd, groupsToRemove);
+    }
 }

@@ -29,7 +29,7 @@ class ParseService {
                 break;
             case "modify":
                 if (className === "Usuario") {
-                    // this.handleModifyUser(doc);
+                    this.handleModifyUser(doc);
                 }
                 else {
                     console.log(`Método não implementado para a entidade ${className}.`);
@@ -71,6 +71,20 @@ class ParseService {
         //     return;
         // } 
         this.storage.addUser({ cn_fullName: fullname, uid_username: username, phone: userPhone, groups: userGroups });
+    }
+    handleModifyUser(doc) {
+        const select = xpath_1.default.useNamespaces({});
+        const userNode = select("//modify/association[@state='associated']/text()", doc)[0];
+        const username = userNode?.nodeValue?.trim() || "";
+        if (!username) {
+            console.error("Não foi possível encontrar o nome do usuário no documento XML.");
+            return;
+        }
+        const removeGroupNodes = select("//modify-attr[@attr-name='Grupo']/remove-value/value/text()", doc);
+        const addGroupNodes = select("//modify-attr[@attr-name='Grupo']/add-value/value/text()", doc);
+        const groupsToRemove = removeGroupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
+        const groupsToAdd = addGroupNodes.map(node => node.nodeValue?.trim()).filter((value) => value !== undefined);
+        this.storage.modifyUserGroups(username, groupsToAdd, groupsToRemove);
     }
 }
 exports.ParseService = ParseService;

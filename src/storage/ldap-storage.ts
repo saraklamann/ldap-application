@@ -121,6 +121,24 @@ EOF`, { encoding: "utf-8", shell: "bash" })
     }
   }
 
+  removeUserFromGroup(userId: string, groups: string[]){
+    try {
+      groups.forEach(cn => {
+        execSync(`
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+replace: member
+member: 
+EOF`, { encoding: "utf-8", shell: "bash" })
+
+      console.log(`Grupo ${cn} adicionado com sucesso!`)
+      })
+    } catch (error) {
+      console.error("Erro ao adicionar usuário ao grupo.", error)
+    }
+  }
+
   addGroup(group: Group): void {
     const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
     const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`
@@ -147,6 +165,26 @@ EOF`, {
       console.log(`O grupo ${group.cn_id} foi adicionado com sucesso!`)
     } catch (error) {
       console.error("Erro ao adicionar grupo ao LDAP: ", error);
+    }
+  }
+
+  modifyUserGroups(username: string, groupsToAdd: string[], groupsToRemove: string[]){  
+    try {
+      groupsToRemove.forEach(groupId => {
+        execSync(`
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br
+changetype: modify
+replace: member
+member: 
+EOF`, { encoding: "utf-8", shell: "bash" });
+        
+        console.log(`Usuário ${username} removido do grupo ${groupId}`);
+
+          this.addUserToGroup(username, groupsToAdd)
+      });
+    } catch (error) {
+      console.error("Erro ao remover grupo.", error)
     }
   }
 }

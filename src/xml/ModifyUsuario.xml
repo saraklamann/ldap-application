@@ -1,11 +1,11 @@
 <modify class-name="Usuario">
-  <association state="associated">teste1</association>
+  <association state="associated">teste xml 3</association>
   <modify-attr attr-name="Grupo">
 	<remove-value>
-	  <value type="string">Grupo2</value>
+	  <value type="string">qa</value>
 	</remove-value>
 	<add-value>
-	  <value type="string">Grupo3</value>
+	  <value type="string">qa</value>
 	</add-value>
   </modify-attr>
 </modify>

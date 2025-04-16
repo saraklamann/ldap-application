@@ -111,10 +111,10 @@ const parser = new ParseService(storage);
 // }
 
 function main(){
-  const xml = readXMLFile("AddGrupo2.xml");
+  const xml = readXMLFile("ModifyUsuario.xml");
   parser.execute(xml);
 
-  storage.getGroups();
+  storage.getUsers();
 }
 
 main();
