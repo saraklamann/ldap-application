@@ -1,6 +1,5 @@
 import { readXMLFile } from "./utils/xml-reader";
 import { LDAPStorage } from "./storage/ldap-storage";
-// import { ParseService } from "./services/parse.service";
 import * as readline from "readline";
 import { getAvailableGroupDescriptions } from "./utils/get-avaliable-groups";
 import { ParseService } from "./services/parse.service";
@@ -14,7 +13,7 @@ const storage = new LDAPStorage();
 const parseService = new ParseService(storage);
 
 function showMenu() {
-  console.log("\n------- MENU --------")
+  console.log("------- MENU -------\n")
   console.log("[1] Adicionar Grupo");
   console.log("[2] Adicionar Usuário");
   console.log("[3] Modificar Usuário");
@@ -42,7 +41,7 @@ async function showGroupMenu() {
         return;
     }
 
-    console.log("\nGrupos disponíveis para adicionar:");
+    console.log("\n--- Grupos disponíveis para adicionar: ---");
     availableGroups.forEach((groupDescription, index) => {
         console.log(`[${index + 1}] ${groupDescription}`);
     });

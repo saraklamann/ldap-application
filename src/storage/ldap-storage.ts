@@ -3,21 +3,48 @@ import { Group } from "../models/group";
 import { execSync } from "child_process";
 
 export class LDAPStorage {
-  getGroups(): void {
+  getGroups(): Group[] {
     try {
       const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)"`, {
         encoding: "utf-8",
         shell: "bash"
       });
 
-      const groupNames = result.split("\n")
-        .filter(line => line.startsWith("cn:")) 
-        .map(line => line.replace("cn: ", "").trim()); 
+      const groupBlocks = result.split("\n\n"); 
 
-      console.log("Grupos encontrados no LDAP: \n");
-      groupNames.forEach(name => console.log(`- ${name}`));
+      const groups = groupBlocks.map(block => {
+        const lines = block.split("\n");
+        let cn_id = "";
+        let description = "";
+        let members: string[] = []
+      
+        lines.forEach(line => {
+          if (line.startsWith("cn: ")) {
+            cn_id = line.replace("cn: ", "").trim(); 
+          } else if (line.startsWith("description: ")) {
+            description = line.replace("description: ", "").trim(); 
+          } else if (line.startsWith("member: ")) {
+            const member = line.replace("member: ", "").trim(); 
+            members.push(member); 
+          }
+        });
+
+        if (cn_id) {
+          return { cn_id, description, member: members }; 
+        }
+      }).filter(g => g !== undefined); 
+      let groupId = 1;
+
+      console.log("\n----------- GRUPOS ----------- \n");
+      groups.forEach(group => {
+        console.log(`[${groupId}] ${group.cn_id} | ${group.description}`)
+        groupId++
+      });
+
+      return groups
     } catch (error) {
       console.error("Erro ao buscar grupos do LDAP: ", error);
+      return []
     }
   }
 
@@ -33,6 +60,7 @@ export class LDAPStorage {
       let user: { uid?: string; cn?: string; telephoneNumber?: string ;memberOf: string[] } = { memberOf: [] };
       let userId = 1;
 
+      console.log("\n----------- USUÁRIOS ----------- \n");
       lines.forEach((line) => {
         if (line.startsWith("uid:")) {
           if (user.uid && user.cn) {
@@ -173,19 +201,9 @@ EOF`, { encoding: "utf-8", shell: "bash" })
       console.error(`Erro ao buscar membros do grupo ${groupId}:`, error);
       return [];
     }
-  
   }
 
   addGroup(group: Group): void {
-//     const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
-//     const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`
-//     const ldifContent = `
-// objectClass: top
-// objectClass: groupOfNames
-// cn: qa
-// member: 
-// EOF`; // Melhorar se sobrar tempo
-
     try {
       execSync(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
 dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br

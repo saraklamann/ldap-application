@@ -9,14 +9,39 @@ class LDAPStorage {
                 encoding: "utf-8",
                 shell: "bash"
             });
-            const groupNames = result.split("\n")
-                .filter(line => line.startsWith("cn:"))
-                .map(line => line.replace("cn: ", "").trim());
-            console.log("Grupos encontrados no LDAP: \n");
-            groupNames.forEach(name => console.log(`- ${name}`));
+            const groupBlocks = result.split("\n\n");
+            const groups = groupBlocks.map(block => {
+                const lines = block.split("\n");
+                let cn_id = "";
+                let description = "";
+                let members = [];
+                lines.forEach(line => {
+                    if (line.startsWith("cn: ")) {
+                        cn_id = line.replace("cn: ", "").trim();
+                    }
+                    else if (line.startsWith("description: ")) {
+                        description = line.replace("description: ", "").trim();
+                    }
+                    else if (line.startsWith("member: ")) {
+                        const member = line.replace("member: ", "").trim();
+                        members.push(member);
+                    }
+                });
+                if (cn_id) {
+                    return { cn_id, description, member: members };
+                }
+            }).filter(g => g !== undefined);
+            let groupId = 1;
+            console.log("\n----------- GRUPOS ----------- \n");
+            groups.forEach(group => {
+                console.log(`[${groupId}] ${group.cn_id} | ${group.description}`);
+                groupId++;
+            });
+            return groups;
         }
         catch (error) {
             console.error("Erro ao buscar grupos do LDAP: ", error);
+            return [];
         }
     }
     getUsers() {
@@ -28,6 +53,7 @@ class LDAPStorage {
             const lines = result.split("\n");
             let user = { memberOf: [] };
             let userId = 1;
+            console.log("\n----------- USUÁRIOS ----------- \n");
             lines.forEach((line) => {
                 if (line.startsWith("uid:")) {
                     if (user.uid && user.cn) {
@@ -151,14 +177,6 @@ EOF`, { encoding: "utf-8", shell: "bash" });
         }
     }
     addGroup(group) {
-        //     const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
-        //     const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`
-        //     const ldifContent = `
-        // objectClass: top
-        // objectClass: groupOfNames
-        // cn: qa
-        // member: 
-        // EOF`; // Melhorar se sobrar tempo
         try {
             (0, child_process_1.execSync)(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
 dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br

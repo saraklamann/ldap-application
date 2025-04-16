@@ -35,7 +35,6 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const xml_reader_1 = require("./utils/xml-reader");
 const ldap_storage_1 = require("./storage/ldap-storage");
-// import { ParseService } from "./services/parse.service";
 const readline = __importStar(require("readline"));
 const get_avaliable_groups_1 = require("./utils/get-avaliable-groups");
 const parse_service_1 = require("./services/parse.service");
@@ -46,7 +45,7 @@ const rl = readline.createInterface({
 const storage = new ldap_storage_1.LDAPStorage();
 const parseService = new parse_service_1.ParseService(storage);
 function showMenu() {
-    console.log("\n------- MENU --------");
+    console.log("------ MENU --------\n");
     console.log("[1] Adicionar Grupo");
     console.log("[2] Adicionar Usuário");
     console.log("[3] Modificar Usuário");
@@ -70,7 +69,7 @@ async function showGroupMenu() {
         });
         return;
     }
-    console.log("\nGrupos disponíveis para adicionar:");
+    console.log("\n--- Grupos disponíveis para adicionar: ---");
     availableGroups.forEach((groupDescription, index) => {
         console.log(`[${index + 1}] ${groupDescription}`);
     });
@@ -103,23 +102,9 @@ async function main() {
                 break;
             case "4":
                 storage.getGroups();
-                // const allGroups = storage.getGroups();
-                // if (allGroups.length === 0) {
-                //   console.log("Nenhum grupo foi adicionado ainda.");
-                // } else {
-                //   console.log("Grupos já inseridos:");
-                //   allGroups.forEach((group) => {
-                //     console.log(group);
-                //   });
-                // }
                 break;
             case "5":
                 storage.getUsers();
-                // const users = storage.getUsers();
-                // console.log("Usuários registrados: ");
-                // users.forEach((user) => {
-                //   console.log(`Usuário: ${user.fullName} - Groups: ${user.groups.join(", ")}`);
-                // });
                 break;
             case "0":
                 exit = true;
@@ -132,9 +117,4 @@ async function main() {
     }
     rl.close();
 }
-// function main(){
-//   const xml = readXMLFile("ModifyUsuario.xml");
-//   parser.execute(xml);
-//   storage.getUsers();
-// }
 main();
