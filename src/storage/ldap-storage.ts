@@ -1,11 +1,14 @@
 import { User } from "../models/user";
 import { Group } from "../models/group";
 import { execSync } from "child_process";
+import dotenv from "dotenv";
+dotenv.config();
 
 export class LDAPStorage {
+
   getGroups(): Group[] {
     try {
-      const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)"`, {
+      const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} -b "ou=Groups,dc=openconsult,dc=com,dc=br" "(objectClass=groupOfNames)"`, {
         encoding: "utf-8",
         shell: "bash"
       });
@@ -50,7 +53,7 @@ export class LDAPStorage {
 
   getUsers(): User[] {
     try {
-      const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf uid cn telephoneNumber`, {
+      const result = execSync(`ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} -b "ou=Users,dc=openconsult,dc=com,dc=br" memberOf uid cn telephoneNumber`, {
         encoding: "utf-8",
         shell: "bash"
       });
@@ -122,7 +125,7 @@ export class LDAPStorage {
       return;
     }
 
-    const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+    const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD}`;
     const dn = `dn: uid=${user.uid_username},ou=Users,dc=openconsult,dc=com,dc=br`
     const ldifContent = `
 objectClass: inetOrgPerson
@@ -184,7 +187,7 @@ telephoneNumber: ${user.phone}`; // Melhorar se sobrar tempo
         }
 
         execSync(`
-ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
 dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
 changetype: modify
 add: member
@@ -233,14 +236,14 @@ EOF`, { encoding: "utf-8", shell: "bash" })
         const ldifCommand =
           members.length > 1
             ? `
-  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
   dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
   changetype: modify
   delete: member
   member: ${userDn}
   EOF`
             : `
-  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+  ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
   dn: cn=${cn},ou=Groups,dc=openconsult,dc=com,dc=br
   changetype: modify
   replace: member
@@ -259,7 +262,7 @@ EOF`, { encoding: "utf-8", shell: "bash" })
   getMembers(groupId: string): string[]{
     try {
       const result = execSync(
-        `ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`,
+        `ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} -b "cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br" member`,
         { encoding: "utf-8", shell: "bash" }
       );
   
@@ -289,7 +292,7 @@ EOF`, { encoding: "utf-8", shell: "bash" })
         return;
       }
 
-      execSync(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+      execSync(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
 dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br
 objectClass: top
 objectClass: groupOfNames
@@ -311,7 +314,7 @@ EOF`, {
     try {
       groupsToRemove.forEach(groupId => {
         execSync(`
-ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+ldapmodify -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w ${process.env.LDAP_ADMIN_PASSWORD} <<EOF
 dn: cn=${groupId},ou=Groups,dc=openconsult,dc=com,dc=br
 changetype: modify
 replace: member
