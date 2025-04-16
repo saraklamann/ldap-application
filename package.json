@@ -16,7 +16,8 @@
     "readline-sync": "^1.4.10",
     "typescript": "^5.8.3",
     "xmldom": "^0.6.0",
-    "xpath": "^0.0.34"
+    "xpath": "^0.0.34",
+    "yml": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",

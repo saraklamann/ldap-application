@@ -1,0 +1,16 @@
+default:
+  password: decrypt(A7YzqIBjGgXWKA9yl81hgSal7djwBuXK5nBS15JswtzyxKWXilS8buiTZ2XqK9cjZJwBtvOclyZzq5VXRXVRA3wbpRBfWfWrBhbihao+GI/kDITMC8BZ1TzLxiOjuqg9i7e0LoumzSAeicgL7b9RLZQ6bgVnKbPz/IXIKYoLbz16zgJBEin+2/d9TiD0M90NSFdkssut0MIHDWYbXAMlTEgMJyVrqK0/X7fQmUpaCAWmluV+S0mXA0141l+916rvBWGRLgBIpF0dvvAN0luisXTmIawQ1J9krUM+j41yU3utOd+duOFL/Hp9tATLBaoNyFi7VtOz7jyWjcMKH298+Q==)
+  days:
+    - Monday
+    - Wednesday
+    - Friday
+  devices:
+    android: false
+    windows: true
+development:
+  username: admin
+  devices:
+    android: true
+    ios: true
+production:
+  password: secret

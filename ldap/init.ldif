@@ -1,7 +1,7 @@
-dn: ou=Users,dc=example,dc=com
+dn: ou=Users,dc=openconsult,dc=com,dc=br
 objectClass: organizationalUnit
 ou: Users
 
-dn: ou=Groups,dc=example,dc=com
+dn: ou=Groups,dc=openconsult,dc=com,dc=br
 objectClass: organizationalUnit
 ou: Groups

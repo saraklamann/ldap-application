@@ -1,0 +1,4 @@
+# --- List organizational units in a domain: --- #
+
+ldapsearch -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin -b "dc=openconsult,dc=com,dc=br" "(objectClass=organizationalUnit)"
+
