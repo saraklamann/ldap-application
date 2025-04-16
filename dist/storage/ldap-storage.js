@@ -103,5 +103,32 @@ EOF`, { encoding: "utf-8", shell: "bash" });
             console.error("Erro ao adicionar usuário ao grupo.", error);
         }
     }
+    addGroup(group) {
+        const url = `ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin`;
+        const dn = `dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br`;
+        const ldifContent = `
+objectClass: top
+objectClass: groupOfNames
+cn: qa
+member: 
+EOF`; // Melhorar se sobrar tempo
+        try {
+            (0, child_process_1.execSync)(`ldapadd -x -D "cn=admin,dc=openconsult,dc=com,dc=br" -w admin <<EOF
+dn: cn=${group.cn_id},ou=Groups,dc=openconsult,dc=com,dc=br
+objectClass: top
+objectClass: groupOfNames
+cn: ${group.cn_id}
+description: ${group.description}
+member: 
+EOF`, {
+                encoding: "utf-8",
+                shell: "bash"
+            });
+            console.log(`O grupo ${group.cn_id} foi adicionado com sucesso!`);
+        }
+        catch (error) {
+            console.error("Erro ao adicionar grupo ao LDAP: ", error);
+        }
+    }
 }
 exports.LDAPStorage = LDAPStorage;

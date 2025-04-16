@@ -130,8 +130,8 @@ const parser = new parse_service_1.ParseService(storage);
 //   rl.close();
 // }
 function main() {
-    const addUserXML = (0, xml_reader_1.readXMLFile)("AddUsuario1.xml");
-    parser.execute(addUserXML);
-    storage.getUsers();
+    const xml = (0, xml_reader_1.readXMLFile)("AddGrupo2.xml");
+    parser.execute(xml);
+    storage.getGroups();
 }
 main();

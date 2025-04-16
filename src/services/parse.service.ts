@@ -16,7 +16,7 @@ export class ParseService {
         switch(rootNode){
             case "add":
                 if(className === "Grupo") {
-                    // this.handleAddGroup(doc);
+                    this.handleAddGroup(doc);
                 } else if (className === "Usuario") {
                     this.handleAddUser(doc)
                 } else {
@@ -38,22 +38,22 @@ export class ParseService {
         }
     }
 
-    // private handleAddGroup(doc: Document) {
-    //     const select = xpath.useNamespaces({})
+    private handleAddGroup(doc: Document) {
+        const select = xpath.useNamespaces({})
 
-    //     const idNode = (select("//add-attr[@attr-name='Identificador']/value/text()", doc) as Node[])[0];
-    //     const descriptionNode = (select("//add-attr[@attr-name='Descricao']/value/text()", doc) as Node[])[0];
+        const idNode = (select("//add-attr[@attr-name='Identificador']/value/text()", doc) as Node[])[0];
+        const descriptionNode = (select("//add-attr[@attr-name='Descricao']/value/text()", doc) as Node[])[0];
 
-    //     const groupId = idNode?.nodeValue?.trim() || "";
-    //     const groupDescription = descriptionNode?.nodeValue?.trim() || "";
+        const groupId = idNode?.nodeValue?.trim() || "";
+        const groupDescription = descriptionNode?.nodeValue?.trim() || "";
 
-    //     if(!groupId || !groupDescription){
-    //         console.error("Faltam informações sobre o grupo no documento XML.");
-    //         return;
-    //     }
+        if(!groupId || !groupDescription){
+            console.error("Faltam informações sobre o grupo no documento XML.");
+            return;
+        }
         
-    //     this.storage.addGroup({id: groupId, description: groupDescription});
-    // }
+        this.storage.addGroup({cn_id: groupId, description: groupDescription, member: []});
+    }
 
     private handleAddUser(doc: Document){
         const nameNode = (xpath.select("//add-attr[@attr-name='Nome Completo']/value/text()", doc) as Node[])[0];
